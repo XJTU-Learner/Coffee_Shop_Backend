@@ -11,7 +11,12 @@ public class MemberDTO{
     private Integer id;
 
     /**
-     * 手机号
+     * openid
+     */
+    private String openid;
+
+    /**
+     * 手机号码
      */
     private String mobile;
 

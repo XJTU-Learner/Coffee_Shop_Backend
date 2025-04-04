@@ -48,14 +48,8 @@ public class Merchant implements Serializable {
     /**
      * 用户密码
      */
-    @TableField("PASSWORD")
+    @TableField("password")
     private String password;
-
-    /**
-     * 密码加盐
-     */
-    @TableField("password_salt")
-    private String passwordSalt;
 
     /**
      * 昵称
@@ -68,18 +62,6 @@ public class Merchant implements Serializable {
      */
     @TableField("roles")
     private String roles;
-
-    /**
-     * 头像
-     */
-    @TableField("avatar")
-    private String avatar;
-
-    /**
-     * 性别 0=无 1=男 2=女
-     */
-    @TableField("sex")
-    private Integer sex;
 
     /**
      * 邮箱

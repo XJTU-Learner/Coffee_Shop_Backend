@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.xjtu_learner.coffee_shop.common.enums.MemberRegisterWay;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -32,6 +33,12 @@ public class Member implements Serializable {
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
+
+    /**
+     * 微信小程序openId
+     */
+    @TableField("open_id")
+    private String openId;
 
     /**
      * 手机号
@@ -76,30 +83,6 @@ public class Member implements Serializable {
     private String email;
 
     /**
-     * 微信小程序openId
-     */
-    @TableField("open_id")
-    private String openId;
-
-    /**
-     * 是否绑定微信 0=否 1=是
-     */
-    @TableField("is_bind_wx")
-    private Boolean isBindWx;
-
-    /**
-     * 注册方式 1=手机验证码 2=微信一键登录
-     */
-    @TableField("register_way")
-    private Integer registerWay;
-
-    /**
-     * 微信公众号openId
-     */
-    @TableField("wx_public_platform_open_id")
-    private String wxPublicPlatformOpenId;
-
-    /**
      * 是否需要请求授权服务通知 0=否 1=是
      */
     @TableField("is_request_wx_notify")
@@ -136,6 +119,12 @@ public class Member implements Serializable {
     private LocalDateTime lastLoginTime;
 
     /**
+     * 注册时间
+     */
+    @TableField("register_time")
+    private LocalDateTime registerTime;
+
+    /**
      * 是否禁用 0=启用 1=禁用
      */
     @TableField("is_disabled")
@@ -146,12 +135,6 @@ public class Member implements Serializable {
      */
     @TableField("is_deleted")
     private Boolean isDeleted;
-
-    /**
-     * 注册时间
-     */
-    @TableField("register_time")
-    private LocalDateTime registerTime;
 
     /**
      * 创建时间

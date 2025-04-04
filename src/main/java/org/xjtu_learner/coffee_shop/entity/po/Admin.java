@@ -45,12 +45,6 @@ public class Admin implements Serializable {
     private String password;
 
     /**
-     * 密码加盐
-     */
-    @TableField("password_salt")
-    private String passwordSalt;
-
-    /**
      * 昵称
      */
     @TableField("nickname")

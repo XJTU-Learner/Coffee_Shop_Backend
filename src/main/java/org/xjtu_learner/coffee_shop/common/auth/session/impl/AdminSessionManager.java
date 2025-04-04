@@ -34,8 +34,7 @@ public class AdminSessionManager implements ISessionManager<Admin, AdminDTO> {
         String key = SESSION_PREFIX + token;
         AdminDTO dto = BeanUtil.copyProperties(admin, AdminDTO.class);
         Map<String, Object> map = BeanUtil.beanToMap(dto, new HashMap<>(), new CopyOptions()
-                .ignoreNullValue()
-                .setFieldValueEditor((fieldName, fieldValue) -> (fieldValue.toString()))
+                .setFieldValueEditor((fieldName, fieldValue) -> (fieldValue == null ? null : fieldValue.toString()))
         );
         // 将用户session信息保存到redis中（{ADMIN_SESSION_PREFIX:token} -> {AdminDTO}）
         stringRedisTemplate.opsForHash().putAll(key, map);

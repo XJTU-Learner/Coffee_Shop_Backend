@@ -24,14 +24,4 @@ public class MerchantDTO {
      * 昵称
      */
     private String nickname;
-
-    /**
-     * 权限
-     */
-    private String roles;
-
-    /**
-     * 头像
-     */
-    private String avatar;
 }

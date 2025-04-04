@@ -21,8 +21,4 @@ public class AdminDTO {
      */
     private String nickname;
 
-    /**
-     * 权限
-     */
-    private String roles;
 }

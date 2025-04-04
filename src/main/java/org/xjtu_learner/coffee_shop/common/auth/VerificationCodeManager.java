@@ -4,7 +4,9 @@ import cn.hutool.core.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.pattern.PatternParseException;
 import org.xjtu_learner.coffee_shop.common.utils.RegexUtil;
+import org.xjtu_learner.coffee_shop.service.impl.AliyunSmsService;
 
 import java.util.concurrent.TimeUnit;
 
@@ -16,28 +18,27 @@ import static org.xjtu_learner.coffee_shop.common.constant.RedisConstant.SESSION
 public class VerificationCodeManager {
 
     private final StringRedisTemplate stringRedisTemplate;
+    private final AliyunSmsService aliyunSmsService;
 
-    public VerificationCodeManager(StringRedisTemplate stringRedisTemplate) {
+    public VerificationCodeManager(StringRedisTemplate stringRedisTemplate, AliyunSmsService aliyunSmsService) {
         this.stringRedisTemplate = stringRedisTemplate;
+        this.aliyunSmsService = aliyunSmsService;
     }
 
-    public boolean sendCode(String mobile) {
-        if (RegexUtil.isPhoneInvalid(mobile)) {
-            return false;
-        }
+    public void sendCode(String prefix,String mobile) {
 
         String code = RandomUtil.randomNumbers(6);
-        //TODO:验证码发送服务
-        log.debug("验证码发送成功：{}", code);
+
+//        aliyunSmsService.sendVerificationCode(mobile,code);
+        log.info("验证码发送成功：{}", code);
 
         // 保存验证码到redis ({SESSION_CODE_KEY:mobile} -> {code})
-        stringRedisTemplate.opsForValue().set(SESSION_CODE_KEY + mobile, code, SESSION_CODE_TTL, TimeUnit.MINUTES);
-        return true;
+        stringRedisTemplate.opsForValue().set(SESSION_CODE_KEY + prefix + mobile, code, SESSION_CODE_TTL, TimeUnit.MINUTES);
     }
 
-    public boolean verifyCode(String mobile, String code) {
+    public boolean verifyCode(String prefix, String mobile, String code) {
         // 从redis获取code
-        String correctCode = stringRedisTemplate.opsForValue().get(SESSION_CODE_KEY + mobile);
+        String correctCode = stringRedisTemplate.opsForValue().get(SESSION_CODE_KEY + prefix + mobile);
         return correctCode != null && correctCode.equals(code);
     }
 }

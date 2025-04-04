@@ -1,17 +1,26 @@
 package org.xjtu_learner.coffee_shop.service.impl;
 
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.xjtu_learner.coffee_shop.common.auth.VerificationCodeManager;
 import org.xjtu_learner.coffee_shop.common.auth.session.impl.AdminSessionManager;
-import org.xjtu_learner.coffee_shop.common.utils.RegexUtil;
+import org.xjtu_learner.coffee_shop.common.exception.CommonException;
+import org.xjtu_learner.coffee_shop.common.utils.HttpContext;
 import org.xjtu_learner.coffee_shop.entity.dto.LoginFormDTO;
+import org.xjtu_learner.coffee_shop.entity.dto.SignupFormDTO;
 import org.xjtu_learner.coffee_shop.entity.po.Admin;
 import org.xjtu_learner.coffee_shop.dao.AdminMapper;
-import org.xjtu_learner.coffee_shop.entity.vo.ApiResponse;
 import org.xjtu_learner.coffee_shop.service.IAdminService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
+
+import java.sql.SQLIntegrityConstraintViolationException;
+import java.time.LocalDateTime;
+
+import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant.*;
+import static org.xjtu_learner.coffee_shop.common.constant.RedisConstant.ADMIN_SESSION_CODE_PREFIX;
 
 
 /**
@@ -37,42 +46,37 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
 
 
     @Override
-    public ApiResponse<String> login(LoginFormDTO loginForm) {
-
-        // 校验手机号
-        if(RegexUtil.isPhoneInvalid(loginForm.getMobile())){
-            return ApiResponse.failure("非法手机号");
-        }
+    public String login(LoginFormDTO loginForm) {
 
         // 校验账号与密码
         Admin admin = lambdaQuery()
                 .eq(Admin::getMobile, loginForm.getMobile())
                 .one();
 
-        if(admin==null){
-            return ApiResponse.failure("账号不存在");
+        if (admin == null) {
+            throw new CommonException("账号不存在！", ACCOUNT_NOT_EXIST);
         }
 
-        if(!passwordEncoder.matches(loginForm.getPassword(),admin.getPassword())){
-            return ApiResponse.failure("密码错误");
+        if (!passwordEncoder.matches(loginForm.getPassword(), admin.getPassword())) {
+            throw new CommonException("密码错误!", WRONG_PASSWORD);
         }
 
         // 为用户在redis创建session
-        String token = adminSessionManager.createSession(admin);
-
-        return ApiResponse.success(token);
+        return adminSessionManager.createSession(admin);
     }
 
     @Override
-    public ApiResponse<String> loginByMobile(LoginFormDTO loginForm) {
+    public void sendCode(String mobile) {
+        verificationCodeManager.sendCode(ADMIN_SESSION_CODE_PREFIX,
+                mobile);
+    }
 
-        // 校验手机号
-        if(RegexUtil.isPhoneInvalid(loginForm.getMobile())){
-            return ApiResponse.failure("非法手机号");
-        }
+    @Override
+    public String loginByMobile(LoginFormDTO loginForm) {
 
         // 校验验证码
-        if(!verificationCodeManager.verifyCode(loginForm.getMobile(), loginForm.getCode())) return ApiResponse.failure("登陆失败");
+        if (!verificationCodeManager.verifyCode(ADMIN_SESSION_CODE_PREFIX, loginForm.getMobile(), loginForm.getCode()))
+            throw new CommonException("验证码错误", WRONG_VERIFICATION_CODE);
 
         // 查询用户
         Admin admin = lambdaQuery()
@@ -80,25 +84,44 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
                 .one();
 
         // 未查询到则注册新用户
-        if(admin == null){
+        if (admin == null) {
             admin = new Admin();
             admin.setMobile(loginForm.getMobile());
             admin.setNickname("用户" + RandomUtil.randomString(6));
+            admin.setRegisterTime(LocalDateTime.now());
             save(admin);
         }
 
         // 为用户在redis创建session
-        String token = adminSessionManager.createSession(admin);
-
-        return ApiResponse.success(token);
+        return adminSessionManager.createSession(admin);
     }
 
     @Override
-    public ApiResponse<String> logout() {
-        //TODO:获取token
-        String token = "";
+    public void logout() {
+        String token = HttpContext.getRequestHeader("Authorization");
         adminSessionManager.removeSession(token);
+    }
 
-        return ApiResponse.success("登出成功！");
+    @Override
+    public void signup(SignupFormDTO signupFormDTO) {
+        Admin admin = new Admin();
+        admin.setMobile(signupFormDTO.getMobile());
+        // 将密码加密后存入
+        admin.setPassword(passwordEncoder.encode(signupFormDTO.getPassword()));
+        if (StrUtil.isBlank(signupFormDTO.getNickname())) {
+            admin.setNickname("用户" + RandomUtil.randomString(6));
+        } else {
+            admin.setNickname(signupFormDTO.getNickname());
+        }
+        admin.setRegisterTime(LocalDateTime.now());
+        try {
+            save(admin);
+        } catch (DataIntegrityViolationException ex) {
+            // 如果手机号冲突则抛出错误
+            if (ex.getCause() instanceof SQLIntegrityConstraintViolationException) {
+                throw new CommonException("手机号已存在，请使用其他手机号注册", ALREADY_EXIST);
+            }
+        }
     }
 }
+

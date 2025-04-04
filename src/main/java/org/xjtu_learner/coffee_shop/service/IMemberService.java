@@ -1,5 +1,7 @@
 package org.xjtu_learner.coffee_shop.service;
 
+import org.xjtu_learner.coffee_shop.entity.dto.LoginFormDTO;
+import org.xjtu_learner.coffee_shop.entity.dto.SignupFormDTO;
 import org.xjtu_learner.coffee_shop.entity.po.Member;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -13,4 +15,11 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IMemberService extends IService<Member> {
 
+    void sendCode(String mobile);
+
+    String loginByMobile(LoginFormDTO loginForm);
+
+    void logout();
+
+    String wxLogin(String code);
 }

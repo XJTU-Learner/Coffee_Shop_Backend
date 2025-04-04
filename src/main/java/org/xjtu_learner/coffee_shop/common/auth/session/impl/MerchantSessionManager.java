@@ -33,8 +33,7 @@ public class MerchantSessionManager implements ISessionManager<Merchant,Merchant
         String key = SESSION_PREFIX + token;
         MerchantDTO dto = BeanUtil.copyProperties(merchant, MerchantDTO.class);
         Map<String, Object> map = BeanUtil.beanToMap(dto, new HashMap<>(), new CopyOptions()
-                .ignoreNullValue()
-                .setFieldValueEditor((fieldName, fieldValue) -> (fieldValue.toString()))
+                .setFieldValueEditor((fieldName, fieldValue) -> (fieldValue == null ? null : fieldValue.toString()))
         );
         // 将用户session信息保存到redis中（{MERCHANT_SESSION_PREFIX:token} -> {MerchantDTO}）
         stringRedisTemplate.opsForHash().putAll(key, map);

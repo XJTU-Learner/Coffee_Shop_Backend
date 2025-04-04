@@ -33,8 +33,7 @@ public class MemberSessionManager implements ISessionManager<Member, MemberDTO> 
         String key = SESSION_PREFIX + token;
         MemberDTO dto = BeanUtil.copyProperties(member, MemberDTO.class);
         Map<String, Object> map = BeanUtil.beanToMap(dto, new HashMap<>(), new CopyOptions()
-                .ignoreNullValue()
-                .setFieldValueEditor((fieldName, fieldValue) -> (fieldValue.toString()))
+                .setFieldValueEditor((fieldName, fieldValue) -> (fieldValue == null ? null : fieldValue.toString()))
         );
         // 将用户session信息保存到redis中（{MEMBER_SESSION_PREFIX:token} -> {MemberDTO}）
         stringRedisTemplate.opsForHash().putAll(key, map);

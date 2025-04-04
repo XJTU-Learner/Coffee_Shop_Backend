@@ -1,5 +1,6 @@
 package org.xjtu_learner.coffee_shop.entity.dto;
 
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
@@ -7,7 +8,7 @@ import lombok.Data;
 import static org.xjtu_learner.coffee_shop.common.constant.RegexPatterns.PHONE_REGEX;
 
 @Data
-public class LoginFormDTO {
+public class SignupFormDTO {
 
     /**
      * 手机号
@@ -17,12 +18,13 @@ public class LoginFormDTO {
     private String mobile;
 
     /**
-     * 验证码
-     */
-    private String code;
-
-    /**
      * 密码
      */
+    @NotBlank(message = "密码不能为空")
     private String password;
+
+    /**
+     * 昵称
+     */
+    private String nickname;
 }
