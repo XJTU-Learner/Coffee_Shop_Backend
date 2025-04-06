@@ -9,6 +9,7 @@ import org.xjtu_learner.coffee_shop.entity.dto.AdminDTO;
 import org.xjtu_learner.coffee_shop.entity.dto.LoginFormDTO;
 import org.xjtu_learner.coffee_shop.entity.dto.MerchantDTO;
 import org.xjtu_learner.coffee_shop.entity.dto.SignupFormDTO;
+import org.xjtu_learner.coffee_shop.entity.po.Merchant;
 import org.xjtu_learner.coffee_shop.entity.vo.ApiResponse;
 import org.xjtu_learner.coffee_shop.service.IAdminService;
 import org.xjtu_learner.coffee_shop.service.IMerchantService;

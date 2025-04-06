@@ -24,6 +24,11 @@ public class SignupFormDTO {
     private String password;
 
     /**
+     * 验证码
+     */
+    private String code;
+
+    /**
      * 昵称
      */
     private String nickname;

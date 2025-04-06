@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
  * </p>
  *
  * @author xuezhihengg
- * @since 2025-04-03
+ * @since 2025-04-06
  */
 @Getter
 @Setter
@@ -34,100 +34,172 @@ public class ShopChangeRecord implements Serializable {
     private Integer id;
 
     /**
+     * 申请商户id
+     */
+    @TableField("merchant_id")
+    private Integer merchantId;
+
+    /**
      * 门店信息id
      */
     @TableField("shop_id")
     private Integer shopId;
 
     /**
-     * 门店名称
-     */
-    @TableField("name")
-    private String name;
-
-    /**
-     * 省份
+     * 变更前省份
      */
     @TableField("province")
     private String province;
 
     /**
-     * 城市
+     * 变更后省份
+     */
+    @TableField("new_province")
+    private String newProvince;
+
+    /**
+     * 变更前城市
      */
     @TableField("city")
     private String city;
 
     /**
-     * 区/县
+     * 变更后城市
+     */
+    @TableField("new_city")
+    private String newCity;
+
+    /**
+     * 变更前区/县
      */
     @TableField("area")
     private String area;
 
     /**
-     * 详细地址
+     * 变更后区/县
+     */
+    @TableField("new_area")
+    private String newArea;
+
+    /**
+     * 变更前详细地址
      */
     @TableField("street")
     private String street;
 
     /**
-     * 门牌号
+     * 变更后详细地址
+     */
+    @TableField("new_street")
+    private String newStreet;
+
+    /**
+     * 变更前门牌号
      */
     @TableField("house_number")
     private String houseNumber;
 
     /**
-     * 门脸照片
+     * 变更后门牌号
+     */
+    @TableField("new_house_number")
+    private String newHouseNumber;
+
+    /**
+     * 变更前门脸照片
      */
     @TableField("shop_img")
     private String shopImg;
 
     /**
-     * 联系人姓名
+     * 变更后门脸照片
+     */
+    @TableField("new_shop_img")
+    private String newShopImg;
+
+    /**
+     * 变更前联系人姓名
      */
     @TableField("contact_realname")
     private String contactRealname;
 
     /**
-     * 联系电话
+     * 变更后联系人姓名
+     */
+    @TableField("new_contact_realname")
+    private String newContactRealname;
+
+    /**
+     * 变更前联系电话
      */
     @TableField("contact_phone")
     private String contactPhone;
 
     /**
-     * 门店公告
+     * 变更后联系人电话
      */
-    @TableField("announcement")
-    private String announcement;
+    @TableField("new_contact_phone")
+    private String newContactPhone;
 
     /**
-     * 门店简介
+     * 变更前门店简介
      */
     @TableField("brief_introduction")
     private String briefIntroduction;
 
     /**
-     * 营业执照
+     * 变更后门店简洁
+     */
+    @TableField("new_brief_introduction")
+    private String newBriefIntroduction;
+
+    /**
+     * 变更前营业执照
      */
     @TableField("business_license")
     private String businessLicense;
 
     /**
-     * 身份证正面
+     * 变更后营业执照
      */
-    @TableField("id_card_front_side")
-    private String idCardFrontSide;
+    @TableField("new_business_license")
+    private String newBusinessLicense;
 
     /**
-     * 身份证反面
+     * 变更前店铺营业开始时间
      */
-    @TableField("id_card_back_side")
-    private String idCardBackSide;
+    @TableField("open_time")
+    private String openTime;
 
     /**
-     * 经度
+     * 变更后店铺营业开始时间
+     */
+    @TableField("new_open_time")
+    private String newOpenTime;
+
+    /**
+     * 变更前店铺营业结束时间
+     */
+    @TableField("close_time")
+    private String closeTime;
+
+    /**
+     * 变更后店铺营业结束时间
+     */
+    @TableField("new_close_time")
+    private String newCloseTime;
+
+    /**
+     * 变更前经度
      */
     @TableField("longitude")
     private BigDecimal longitude;
+
+    /**
+     * 变更后经度
+     */
+    @TableField("new_longitude")
+    private BigDecimal newLongitude;
 
     /**
      * 纬度
@@ -136,16 +208,22 @@ public class ShopChangeRecord implements Serializable {
     private BigDecimal latitude;
 
     /**
-     * 申请变更内容/标识哪些字段进行了变更
+     * 变更后纬度
      */
-    @TableField("apply_change_content")
-    private String applyChangeContent;
+    @TableField("new_latitude")
+    private BigDecimal newLatitude;
 
     /**
      * 审批状态 1=审核中 2=审核成功 3=审核失败
      */
     @TableField("audit_status")
     private Integer auditStatus;
+
+    /**
+     * 审核员
+     */
+    @TableField("auditor")
+    private Integer auditor;
 
     /**
      * 审批失败原因

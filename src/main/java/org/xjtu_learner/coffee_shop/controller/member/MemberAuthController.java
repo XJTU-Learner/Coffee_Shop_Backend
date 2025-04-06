@@ -9,6 +9,7 @@ import org.xjtu_learner.coffee_shop.entity.dto.LoginFormDTO;
 import org.xjtu_learner.coffee_shop.entity.dto.MemberDTO;
 import org.xjtu_learner.coffee_shop.entity.dto.MerchantDTO;
 import org.xjtu_learner.coffee_shop.entity.dto.SignupFormDTO;
+import org.xjtu_learner.coffee_shop.entity.po.Merchant;
 import org.xjtu_learner.coffee_shop.entity.vo.ApiResponse;
 import org.xjtu_learner.coffee_shop.service.IMemberService;
 import org.xjtu_learner.coffee_shop.service.IMerchantService;
@@ -56,4 +57,5 @@ public class MemberAuthController {
     public ApiResponse<MemberDTO> me() {
         return ApiResponse.success(MemberContext.get());
     }
+
 }

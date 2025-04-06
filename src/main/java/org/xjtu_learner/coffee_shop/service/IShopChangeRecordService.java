@@ -1,5 +1,6 @@
 package org.xjtu_learner.coffee_shop.service;
 
+import org.xjtu_learner.coffee_shop.entity.dto.ShopChangeFormDTO;
 import org.xjtu_learner.coffee_shop.entity.po.ShopChangeRecord;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -9,8 +10,11 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * </p>
  *
  * @author xuezhihengg
- * @since 2025-04-03
+ * @since 2025-04-06
  */
 public interface IShopChangeRecordService extends IService<ShopChangeRecord> {
 
+    void saveInitRecord(ShopChangeFormDTO shopChangeForm);
+
+    void saveRecord(ShopChangeFormDTO formDTO);
 }

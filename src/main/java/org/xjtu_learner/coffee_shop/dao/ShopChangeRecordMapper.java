@@ -9,7 +9,7 @@ import org.xjtu_learner.coffee_shop.entity.po.ShopChangeRecord;
  * </p>
  *
  * @author xuezhihengg
- * @since 2025-04-03
+ * @since 2025-04-06
  */
 public interface ShopChangeRecordMapper extends BaseMapper<ShopChangeRecord> {
 

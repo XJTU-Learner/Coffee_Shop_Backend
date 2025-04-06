@@ -7,4 +7,6 @@ public class ExceptionCodeConstant {
     public final static int SMS_FAILED = 10003;
     public final static int ALREADY_EXIST = 10004;
     public final static int WX_LOGIN_ERROR = 10005;
+    public final static int INVALID_ARGUMENT = 10006;
+    public final static int AUDIT_ONGOING = 10007;
 }

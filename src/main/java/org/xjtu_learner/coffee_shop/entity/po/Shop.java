@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
  * </p>
  *
  * @author xuezhihengg
- * @since 2025-04-03
+ * @since 2025-04-06
  */
 @Getter
 @Setter
@@ -32,24 +32,6 @@ public class Shop implements Serializable {
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
-
-    /**
-     * 商家id
-     */
-    @TableField("merchant_id")
-    private Integer merchantId;
-
-    /**
-     * 门店名称
-     */
-    @TableField("name")
-    private String name;
-
-    /**
-     * 门店编号
-     */
-    @TableField("code")
-    private String code;
 
     /**
      * 省份
@@ -82,46 +64,10 @@ public class Shop implements Serializable {
     private String houseNumber;
 
     /**
-     * 店铺是否营业 0=否 1=是
-     */
-    @TableField("is_operating")
-    private Boolean isOperating;
-
-    /**
-     * 店铺营业开始时间
-     */
-    @TableField("start_time")
-    private String startTime;
-
-    /**
-     * 店铺营业结束时间
-     */
-    @TableField("end_time")
-    private String endTime;
-
-    /**
      * 门脸照片
      */
     @TableField("shop_img")
     private String shopImg;
-
-    /**
-     * 审批状态 1=审核中 2=审核成功 3=审核失败
-     */
-    @TableField("audit_status")
-    private Integer auditStatus;
-
-    /**
-     * 审批失败原因
-     */
-    @TableField("audit_reason")
-    private String auditReason;
-
-    /**
-     * 审批时间
-     */
-    @TableField("audit_time")
-    private LocalDateTime auditTime;
 
     /**
      * 联系人姓名
@@ -136,12 +82,6 @@ public class Shop implements Serializable {
     private String contactPhone;
 
     /**
-     * 门店公告
-     */
-    @TableField("announcement")
-    private String announcement;
-
-    /**
      * 门店简介
      */
     @TableField("brief_introduction")
@@ -154,22 +94,16 @@ public class Shop implements Serializable {
     private String businessLicense;
 
     /**
-     * 身份证正面
+     * 店铺营业开始时间
      */
-    @TableField("id_card_front_side")
-    private String idCardFrontSide;
+    @TableField("open_time")
+    private String openTime;
 
     /**
-     * 身份证反面
+     * 店铺营业结束时间
      */
-    @TableField("id_card_back_side")
-    private String idCardBackSide;
-
-    /**
-     * 状态 1=未运营 2=运营中 3=整改中 4=闭店
-     */
-    @TableField("status")
-    private Integer status;
+    @TableField("close_time")
+    private String closeTime;
 
     /**
      * 经度
@@ -182,6 +116,12 @@ public class Shop implements Serializable {
      */
     @TableField("latitude")
     private BigDecimal latitude;
+
+    /**
+     * 是否营业 0=否 1=是
+     */
+    @TableField("is_open")
+    private Boolean isOpen;
 
     /**
      * 创建时间

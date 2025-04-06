@@ -1,5 +1,7 @@
 package org.xjtu_learner.coffee_shop.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
+import org.xjtu_learner.coffee_shop.entity.dto.ShopChangeFormDTO;
 import org.xjtu_learner.coffee_shop.entity.po.Shop;
 import org.xjtu_learner.coffee_shop.dao.ShopMapper;
 import org.xjtu_learner.coffee_shop.service.IShopService;
@@ -12,7 +14,7 @@ import org.springframework.stereotype.Service;
  * </p>
  *
  * @author xuezhihengg
- * @since 2025-04-03
+ * @since 2025-04-06
  */
 @Service
 public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IShopService {

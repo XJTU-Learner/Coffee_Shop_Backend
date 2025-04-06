@@ -4,7 +4,9 @@ import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.xjtu_learner.coffee_shop.common.auth.VerificationCodeManager;
+import org.xjtu_learner.coffee_shop.common.auth.context.MerchantContext;
 import org.xjtu_learner.coffee_shop.common.auth.session.impl.MerchantSessionManager;
 import org.xjtu_learner.coffee_shop.common.exception.CommonException;
 import org.xjtu_learner.coffee_shop.common.utils.HttpContext;
@@ -12,9 +14,11 @@ import org.xjtu_learner.coffee_shop.entity.dto.LoginFormDTO;
 import org.xjtu_learner.coffee_shop.entity.dto.SignupFormDTO;
 import org.xjtu_learner.coffee_shop.entity.po.Merchant;
 import org.xjtu_learner.coffee_shop.dao.MerchantMapper;
+import org.xjtu_learner.coffee_shop.entity.po.Shop;
 import org.xjtu_learner.coffee_shop.service.IMerchantService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
+import org.xjtu_learner.coffee_shop.service.IShopService;
 
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.time.LocalDateTime;
@@ -36,11 +40,13 @@ public class MerchantServiceImpl extends ServiceImpl<MerchantMapper, Merchant> i
     private final VerificationCodeManager verificationCodeManager;
     private final MerchantSessionManager merchantSessionManager;
     private final PasswordEncoder passwordEncoder;
+    private final IShopService shopService;
 
-    public MerchantServiceImpl(VerificationCodeManager verificationCodeManager, MerchantSessionManager merchantSessionManager, PasswordEncoder passwordEncoder) {
+    public MerchantServiceImpl(VerificationCodeManager verificationCodeManager, MerchantSessionManager merchantSessionManager, PasswordEncoder passwordEncoder, IShopService shopService) {
         this.verificationCodeManager = verificationCodeManager;
         this.merchantSessionManager = merchantSessionManager;
         this.passwordEncoder = passwordEncoder;
+        this.shopService = shopService;
     }
 
     @Override
@@ -84,7 +90,6 @@ public class MerchantServiceImpl extends ServiceImpl<MerchantMapper, Merchant> i
             merchant = new Merchant();
             merchant.setMobile(loginForm.getMobile());
             merchant.setNickname("用户" + RandomUtil.randomString(6));
-            merchant.setRegisterTime(LocalDateTime.now());
             save(merchant);
         }
 
@@ -99,17 +104,22 @@ public class MerchantServiceImpl extends ServiceImpl<MerchantMapper, Merchant> i
     }
 
     @Override
+    @Transactional
     public void signup(SignupFormDTO signupFormDTO) {
+        // 校验验证码
+        if (!verificationCodeManager.verifyCode(MERCHANT_SESSION_CODE_PREFIX, signupFormDTO.getMobile(), signupFormDTO.getCode()))
+            throw new CommonException("验证码错误", WRONG_VERIFICATION_CODE);
+
         Merchant merchant = new Merchant();
         merchant.setMobile(signupFormDTO.getMobile());
         // 将密码加密后存入
         merchant.setPassword(passwordEncoder.encode(signupFormDTO.getPassword()));
-        if (StrUtil.isBlank(signupFormDTO.getNickname())) {
-            merchant.setNickname("用户" + RandomUtil.randomString(6));
-        } else {
-            merchant.setNickname(signupFormDTO.getNickname());
-        }
-        merchant.setRegisterTime(LocalDateTime.now());
+        merchant.setNickname("临时商户" + RandomUtil.randomString(6));
+        // 为该商户绑定门店
+        Shop shop = new Shop();
+        shopService.save(shop);
+        merchant.setShopId(shop.getId());
+
         try {
             save(merchant);
         } catch (DataIntegrityViolationException ex) {

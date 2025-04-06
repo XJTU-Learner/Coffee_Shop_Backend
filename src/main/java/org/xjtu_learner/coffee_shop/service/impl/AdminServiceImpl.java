@@ -104,6 +104,12 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
 
     @Override
     public void signup(SignupFormDTO signupFormDTO) {
+
+        // 校验验证码
+        if (!verificationCodeManager.verifyCode(ADMIN_SESSION_CODE_PREFIX, signupFormDTO.getMobile(), signupFormDTO.getCode()))
+            throw new CommonException("验证码错误", WRONG_VERIFICATION_CODE);
+
+
         Admin admin = new Admin();
         admin.setMobile(signupFormDTO.getMobile());
         // 将密码加密后存入

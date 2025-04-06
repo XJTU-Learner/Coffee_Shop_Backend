@@ -9,7 +9,7 @@ import org.xjtu_learner.coffee_shop.entity.po.Shop;
  * </p>
  *
  * @author xuezhihengg
- * @since 2025-04-03
+ * @since 2025-04-06
  */
 public interface ShopMapper extends BaseMapper<Shop> {
 

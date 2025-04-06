@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.xjtu_learner.coffee_shop.common.enums.CertificateType;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -52,28 +53,16 @@ public class Merchant implements Serializable {
     private String password;
 
     /**
-     * 昵称
+     * 门店名称
      */
     @TableField("nickname")
     private String nickname;
 
     /**
-     * 权限
-     */
-    @TableField("roles")
-    private String roles;
-
-    /**
-     * 邮箱
-     */
-    @TableField("email")
-    private String email;
-
-    /**
      * 证件类型
      */
     @TableField("certificate_type")
-    private String certificateType;
+    private CertificateType certificateType;
 
     /**
      * 证件照片
@@ -94,16 +83,10 @@ public class Merchant implements Serializable {
     private String idCard;
 
     /**
-     * 开户行
+     * 开户银行
      */
-    @TableField("opening_bank_address")
-    private String openingBankAddress;
-
-    /**
-     * 开户银行名称
-     */
-    @TableField("opening_bank_name")
-    private String openingBankName;
+    @TableField("opening_bank")
+    private String openingBank;
 
     /**
      * 银行卡号
@@ -116,6 +99,12 @@ public class Merchant implements Serializable {
      */
     @TableField("wechat_account")
     private String wechatAccount;
+
+    /**
+     * 微信账号
+     */
+    @TableField("alipay_account")
+    private String alipayAccount;
 
     /**
      * 余额
@@ -142,18 +131,6 @@ public class Merchant implements Serializable {
     private BigDecimal orderFrozenBalance;
 
     /**
-     * 绑定的小程序用户id(用于发送微信公众号消息、进行商家端余额提现)
-     */
-    @TableField("member_id")
-    private Integer memberId;
-
-    /**
-     * 审批状态 1=审核中 2=审核成功 3=审核失败
-     */
-    @TableField("audit_status")
-    private Integer auditStatus;
-
-    /**
      * 是否禁用 0=启用 1=禁用
      */
     @TableField("is_disabled")
@@ -164,12 +141,6 @@ public class Merchant implements Serializable {
      */
     @TableField("is_deleted")
     private Boolean isDeleted;
-
-    /**
-     * 注册时间
-     */
-    @TableField("register_time")
-    private LocalDateTime registerTime;
 
     /**
      * 创建时间
