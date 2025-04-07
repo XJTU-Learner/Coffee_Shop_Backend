@@ -7,9 +7,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.xjtu_learner.coffee_shop.entity.dto.MerchantChangeFormDTO;
 import org.xjtu_learner.coffee_shop.entity.dto.ShopChangeFormDTO;
-import org.xjtu_learner.coffee_shop.entity.vo.ApiResponse;
+import org.xjtu_learner.coffee_shop.entity.dto.ApiResponse;
 import org.xjtu_learner.coffee_shop.service.IMerchantChangeRecordService;
-import org.xjtu_learner.coffee_shop.service.IMerchantService;
 import org.xjtu_learner.coffee_shop.service.IShopChangeRecordService;
 
 

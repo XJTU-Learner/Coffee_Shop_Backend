@@ -2,14 +2,18 @@ package org.xjtu_learner.coffee_shop.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.xjtu_learner.coffee_shop.common.auth.context.MerchantContext;
+import org.xjtu_learner.coffee_shop.common.enums.AuditStatus;
 import org.xjtu_learner.coffee_shop.common.enums.CertificateType;
 import org.xjtu_learner.coffee_shop.common.exception.CommonException;
 import org.xjtu_learner.coffee_shop.entity.dto.MerchantChangeFormDTO;
+import org.xjtu_learner.coffee_shop.entity.dto.PageDTO;
+import org.xjtu_learner.coffee_shop.entity.dto.PageQuery;
 import org.xjtu_learner.coffee_shop.entity.po.Merchant;
 import org.xjtu_learner.coffee_shop.entity.po.MerchantChangeRecord;
 import org.xjtu_learner.coffee_shop.dao.MerchantChangeRecordMapper;
-import org.xjtu_learner.coffee_shop.entity.po.ShopChangeRecord;
+import org.xjtu_learner.coffee_shop.entity.dto.RequireChangeItem;
 import org.xjtu_learner.coffee_shop.service.IMerchantChangeRecordService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
@@ -66,6 +70,19 @@ public class MerchantChangeRecordServiceImpl extends ServiceImpl<MerchantChangeR
             throw new CommonException("商户资料初始化表单不完整，商户资料初始化的必填字段有newCertificateType、newCertificateImg、" +
                     "newRealName、newIdCard、newOpeningBank和newBankCard", INVALID_ARGUMENT);
         saveRecord(formDTO);
+    }
+
+    @Override
+    public PageDTO<RequireChangeItem> getChangeProfileList(PageQuery pageQuery) {
+        Page<MerchantChangeRecord> recordPage = lambdaQuery().select(
+                        MerchantChangeRecord::getId,
+                        MerchantChangeRecord::getMerchantId,
+                        MerchantChangeRecord::getNickName,
+                        MerchantChangeRecord::getCreateAt)
+                .eq(MerchantChangeRecord::getAuditStatus, AuditStatus.ONGOING)
+                .page(pageQuery.toMpPageByCreateTimeDesc());
+
+        return PageDTO.of(recordPage,record -> BeanUtil.copyProperties(record, RequireChangeItem.class));
     }
 
     private boolean checkInitForm(MerchantChangeFormDTO formDTO) {

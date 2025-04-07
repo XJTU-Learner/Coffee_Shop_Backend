@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.xjtu_learner.coffee_shop.common.enums.AuditStatus;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -44,6 +45,12 @@ public class ShopChangeRecord implements Serializable {
      */
     @TableField("shop_id")
     private Integer shopId;
+
+    /**
+     * 门店名称
+     */
+    @TableField("nickname")
+    private String nickname;
 
     /**
      * 变更前省份
@@ -217,7 +224,7 @@ public class ShopChangeRecord implements Serializable {
      * 审批状态 1=审核中 2=审核成功 3=审核失败
      */
     @TableField("audit_status")
-    private Integer auditStatus;
+    private AuditStatus auditStatus;
 
     /**
      * 审核员

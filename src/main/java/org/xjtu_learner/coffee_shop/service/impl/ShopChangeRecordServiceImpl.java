@@ -2,16 +2,23 @@ package org.xjtu_learner.coffee_shop.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.xjtu_learner.coffee_shop.common.auth.context.MerchantContext;
+import org.xjtu_learner.coffee_shop.common.enums.AuditStatus;
 import org.xjtu_learner.coffee_shop.common.exception.CommonException;
+import org.xjtu_learner.coffee_shop.entity.dto.PageDTO;
+import org.xjtu_learner.coffee_shop.entity.dto.PageQuery;
 import org.xjtu_learner.coffee_shop.entity.dto.ShopChangeFormDTO;
 import org.xjtu_learner.coffee_shop.entity.po.Shop;
 import org.xjtu_learner.coffee_shop.entity.po.ShopChangeRecord;
 import org.xjtu_learner.coffee_shop.dao.ShopChangeRecordMapper;
+import org.xjtu_learner.coffee_shop.entity.dto.RequireChangeItem;
 import org.xjtu_learner.coffee_shop.service.IShopChangeRecordService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 import org.xjtu_learner.coffee_shop.service.IShopService;
+
+import java.util.List;
 
 import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant.AUDIT_ONGOING;
 import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant.INVALID_ARGUMENT;
@@ -52,8 +59,8 @@ public class ShopChangeRecordServiceImpl extends ServiceImpl<ShopChangeRecordMap
         boolean exists = lambdaQuery()
                 .eq(ShopChangeRecord::getMerchantId, id)
                 .exists();
-        if(exists){
-            throw new CommonException("已有正在进行的审核",AUDIT_ONGOING);
+        if (exists) {
+            throw new CommonException("已有正在进行的审核", AUDIT_ONGOING);
         }
 
         Shop shop = shopService.lambdaQuery().eq(Shop::getId, MerchantContext.get().getShopId()).one();
@@ -62,8 +69,22 @@ public class ShopChangeRecordServiceImpl extends ServiceImpl<ShopChangeRecordMap
         BeanUtil.copyProperties(shop, record, "id");
 
         record.setMerchantId(id);
+        record.setNickname(MerchantContext.get().getNickname());
         record.setShopId(shop.getId());
         save(record);
+    }
+
+    @Override
+    public PageDTO<RequireChangeItem> getChangeShopList(PageQuery pageQuery) {
+        Page<ShopChangeRecord> recordPage = lambdaQuery().select(
+                        ShopChangeRecord::getId,
+                        ShopChangeRecord::getMerchantId,
+                        ShopChangeRecord::getNickname,
+                        ShopChangeRecord::getCreateAt)
+                .eq(ShopChangeRecord::getAuditStatus, AuditStatus.ONGOING)
+                .page(pageQuery.toMpPageByCreateTimeDesc());
+
+        return PageDTO.of(recordPage, record -> BeanUtil.copyProperties(record, RequireChangeItem.class));
     }
 
     private boolean checkInitForm(ShopChangeFormDTO shopChangeForm) {
