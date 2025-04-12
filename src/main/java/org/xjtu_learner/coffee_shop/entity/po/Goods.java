@@ -11,6 +11,7 @@ import lombok.ToString;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
 /**
  * <p>
  * 商品表
@@ -82,10 +83,10 @@ public class Goods implements Serializable {
     private Boolean isNew;
 
     /**
-     * 状态 1=待上架 2=已上架 3=已下架
+     * 出售状态 0=已上架 1=已下架
      */
-    @TableField("status")
-    private Integer status;
+    @TableField("for_sale")
+    private Boolean forSale;
 
     /**
      * 下单选项
@@ -96,8 +97,8 @@ public class Goods implements Serializable {
     /**
      * 在售门店数
      */
-    @TableField("on_sale_count")
-    private Integer onSaleCount;
+    @TableField("for_sale_count")
+    private Integer forSaleCount;
 
     /**
      * 累计销量

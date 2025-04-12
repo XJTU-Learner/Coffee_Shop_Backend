@@ -1,4 +1,4 @@
-package org.xjtu_learner.coffee_shop.entity.vo;
+package org.xjtu_learner.coffee_shop.entity.dto;
 
 import lombok.Getter;
 import lombok.Setter;

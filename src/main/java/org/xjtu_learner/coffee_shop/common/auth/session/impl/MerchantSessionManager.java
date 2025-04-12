@@ -7,6 +7,7 @@ import cn.hutool.core.util.BooleanUtil;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.xjtu_learner.coffee_shop.common.auth.session.ISessionManager;
+import org.xjtu_learner.coffee_shop.common.utils.HttpContext;
 import org.xjtu_learner.coffee_shop.entity.dto.MerchantDTO;
 import org.xjtu_learner.coffee_shop.entity.po.Merchant;
 

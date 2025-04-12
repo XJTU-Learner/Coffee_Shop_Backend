@@ -3,15 +3,11 @@ package org.xjtu_learner.coffee_shop.controller.member;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import org.xjtu_learner.coffee_shop.common.auth.context.MemberContext;
-import org.xjtu_learner.coffee_shop.common.auth.context.MerchantContext;
 import org.xjtu_learner.coffee_shop.common.utils.RegexUtil;
 import org.xjtu_learner.coffee_shop.entity.dto.LoginFormDTO;
 import org.xjtu_learner.coffee_shop.entity.dto.MemberDTO;
-import org.xjtu_learner.coffee_shop.entity.dto.MerchantDTO;
-import org.xjtu_learner.coffee_shop.entity.dto.SignupFormDTO;
-import org.xjtu_learner.coffee_shop.entity.vo.ApiResponse;
+import org.xjtu_learner.coffee_shop.entity.dto.ApiResponse;
 import org.xjtu_learner.coffee_shop.service.IMemberService;
-import org.xjtu_learner.coffee_shop.service.IMerchantService;
 
 @RestController
 @RequestMapping("/member/auth")
@@ -56,4 +52,5 @@ public class MemberAuthController {
     public ApiResponse<MemberDTO> me() {
         return ApiResponse.success(MemberContext.get());
     }
+
 }

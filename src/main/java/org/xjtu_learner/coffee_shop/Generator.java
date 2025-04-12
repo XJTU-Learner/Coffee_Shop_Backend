@@ -24,7 +24,7 @@ public class Generator {
                                 .controller("controller") // 设置 Controller 包名
                 )
                 .strategyConfig(builder -> {
-                    builder.addInclude()
+                    builder.addInclude("tb_shop","tb_shop_change_record")
                             .addTablePrefix("tb_")
                             .entityBuilder()
                             .enableLombok() // 启用 Lombok
