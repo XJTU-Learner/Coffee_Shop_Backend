@@ -54,7 +54,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
                 .one();
 
         if (admin == null) {
-            throw new CommonException("账号不存在！", ACCOUNT_NOT_EXIST);
+            throw new CommonException("账号不存在！", NOT_EXIST);
         }
 
         if (!passwordEncoder.matches(loginForm.getPassword(), admin.getPassword())) {

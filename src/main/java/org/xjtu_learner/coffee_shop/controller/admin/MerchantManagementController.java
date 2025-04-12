@@ -1,16 +1,9 @@
 package org.xjtu_learner.coffee_shop.controller.admin;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.xjtu_learner.coffee_shop.entity.dto.ApiResponse;
-import org.xjtu_learner.coffee_shop.entity.dto.PageDTO;
-import org.xjtu_learner.coffee_shop.entity.dto.PageQuery;
-import org.xjtu_learner.coffee_shop.entity.dto.RequireChangeItem;
+import org.springframework.web.bind.annotation.*;
+import org.xjtu_learner.coffee_shop.entity.dto.*;
 import org.xjtu_learner.coffee_shop.service.IMerchantChangeRecordService;
 import org.xjtu_learner.coffee_shop.service.IShopChangeRecordService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/admin/merchantManagement")
@@ -24,19 +17,32 @@ public class MerchantManagementController {
         this.shopChangeRecordService = shopChangeRecordService;
     }
 
-    @GetMapping("/changeProfile")
-    public ApiResponse<PageDTO<RequireChangeItem>> changeProfile(PageQuery pageQuery) {
+    @GetMapping("/merchantProfile")
+    public ApiResponse<PageDTO<MerchantChangeRecordDTO>> getChangeProfileList(PageQuery pageQuery) {
 
-        PageDTO<RequireChangeItem> changeProfilePage = merchantChangeRecordService.getChangeProfileList(pageQuery);
+        PageDTO<MerchantChangeRecordDTO> changeProfilePage = merchantChangeRecordService.getChangeProfileList(pageQuery);
         return ApiResponse.success(changeProfilePage);
     }
 
 
-    @GetMapping("/changeShop")
-    public ApiResponse<PageDTO<RequireChangeItem>> changeShop(PageQuery pageQuery){
+    @GetMapping("/shopProfile")
+    public ApiResponse<PageDTO<ShopChangeRecordDTO>> getChangeShopList(PageQuery pageQuery){
 
-        PageDTO<RequireChangeItem> changeShopList = shopChangeRecordService.getChangeShopList(pageQuery);
+        PageDTO<ShopChangeRecordDTO> changeShopList = shopChangeRecordService.getChangeShopList(pageQuery);
         return ApiResponse.success(changeShopList);
+    }
+
+    @PostMapping("/merchantProfile")
+    public ApiResponse<String> auditChangeProfile(@RequestBody AuditChangeForm form){
+        merchantChangeRecordService.auditChangeProfile(form);
+        return ApiResponse.success("审核成功！");
+    }
+
+    @PostMapping("/shopProfile")
+    public ApiResponse<String> auditChangeShop(@RequestBody AuditChangeForm form){
+        shopChangeRecordService.auditChangeShop(form);
+        return ApiResponse.success("审核成功！");
+
     }
 
 }

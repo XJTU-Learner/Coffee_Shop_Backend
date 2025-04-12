@@ -1,11 +1,8 @@
 package org.xjtu_learner.coffee_shop.service;
 
-import org.xjtu_learner.coffee_shop.entity.dto.MerchantChangeFormDTO;
-import org.xjtu_learner.coffee_shop.entity.dto.PageDTO;
-import org.xjtu_learner.coffee_shop.entity.dto.PageQuery;
+import org.xjtu_learner.coffee_shop.entity.dto.*;
 import org.xjtu_learner.coffee_shop.entity.po.MerchantChangeRecord;
 import com.baomidou.mybatisplus.extension.service.IService;
-import org.xjtu_learner.coffee_shop.entity.dto.RequireChangeItem;
 
 /**
  * <p>
@@ -17,10 +14,11 @@ import org.xjtu_learner.coffee_shop.entity.dto.RequireChangeItem;
  */
 public interface IMerchantChangeRecordService extends IService<MerchantChangeRecord> {
 
-    void saveRecord(MerchantChangeFormDTO formDTO);
+    void saveRecord(MerchantChangeForm formDTO);
 
-    void saveInitRecord(MerchantChangeFormDTO formDTO);
+    void saveInitRecord(MerchantChangeForm formDTO);
 
-    PageDTO<RequireChangeItem> getChangeProfileList(PageQuery pageQuery);
+    PageDTO<MerchantChangeRecordDTO> getChangeProfileList(PageQuery pageQuery);
 
+    void auditChangeProfile(AuditChangeForm form);
 }

@@ -1,13 +1,10 @@
 package org.xjtu_learner.coffee_shop.service.impl;
 
 import cn.binarywang.wx.miniapp.api.WxMaService;
-import cn.binarywang.wx.miniapp.bean.WxMaJscode2SessionResult;
-import cn.binarywang.wx.miniapp.bean.WxMaPhoneNumberInfo;
 import cn.hutool.core.util.RandomUtil;
 import me.chanjar.weixin.common.error.WxErrorException;
 import org.xjtu_learner.coffee_shop.common.auth.VerificationCodeManager;
 import org.xjtu_learner.coffee_shop.common.auth.session.impl.MemberSessionManager;
-import org.xjtu_learner.coffee_shop.common.enums.MemberRegisterWay;
 import org.xjtu_learner.coffee_shop.common.exception.CommonException;
 import org.xjtu_learner.coffee_shop.common.utils.HttpContext;
 import org.xjtu_learner.coffee_shop.entity.dto.LoginFormDTO;
@@ -61,7 +58,7 @@ public class MemberServiceImpl extends ServiceImpl<MemberMapper, Member> impleme
 
         // 未查询到则注册新用户
         if (member == null) {
-            throw new CommonException("用户不存在",ACCOUNT_NOT_EXIST);
+            throw new CommonException("用户不存在", NOT_EXIST);
         }
 
         // 为用户在redis创建session

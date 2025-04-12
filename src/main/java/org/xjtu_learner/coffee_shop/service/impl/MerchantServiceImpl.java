@@ -1,12 +1,10 @@
 package org.xjtu_learner.coffee_shop.service.impl;
 
 import cn.hutool.core.util.RandomUtil;
-import cn.hutool.core.util.StrUtil;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.xjtu_learner.coffee_shop.common.auth.VerificationCodeManager;
-import org.xjtu_learner.coffee_shop.common.auth.context.MerchantContext;
 import org.xjtu_learner.coffee_shop.common.auth.session.impl.MerchantSessionManager;
 import org.xjtu_learner.coffee_shop.common.exception.CommonException;
 import org.xjtu_learner.coffee_shop.common.utils.HttpContext;
@@ -21,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.xjtu_learner.coffee_shop.service.IShopService;
 
 import java.sql.SQLIntegrityConstraintViolationException;
-import java.time.LocalDateTime;
 
 import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant.*;
 import static org.xjtu_learner.coffee_shop.common.constant.RedisConstant.MERCHANT_SESSION_CODE_PREFIX;
@@ -58,7 +55,7 @@ public class MerchantServiceImpl extends ServiceImpl<MerchantMapper, Merchant> i
                 .one();
 
         if (merchant == null) {
-            throw new CommonException("账号不存在！", ACCOUNT_NOT_EXIST);
+            throw new CommonException("账号不存在！", NOT_EXIST);
         }
 
         if (!passwordEncoder.matches(loginForm.getPassword(), merchant.getPassword())) {

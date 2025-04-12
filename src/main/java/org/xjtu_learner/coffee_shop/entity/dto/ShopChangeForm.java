@@ -5,7 +5,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
-public class ShopChangeFormDTO {
+public class ShopChangeForm {
 
     /**
      * 变更后省份

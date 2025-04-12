@@ -3,25 +3,24 @@ package org.xjtu_learner.coffee_shop.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.xjtu_learner.coffee_shop.common.auth.context.AdminContext;
 import org.xjtu_learner.coffee_shop.common.auth.context.MerchantContext;
 import org.xjtu_learner.coffee_shop.common.enums.AuditStatus;
 import org.xjtu_learner.coffee_shop.common.exception.CommonException;
-import org.xjtu_learner.coffee_shop.entity.dto.PageDTO;
-import org.xjtu_learner.coffee_shop.entity.dto.PageQuery;
-import org.xjtu_learner.coffee_shop.entity.dto.ShopChangeFormDTO;
+import org.xjtu_learner.coffee_shop.entity.dto.*;
+import org.xjtu_learner.coffee_shop.entity.po.MerchantChangeRecord;
 import org.xjtu_learner.coffee_shop.entity.po.Shop;
 import org.xjtu_learner.coffee_shop.entity.po.ShopChangeRecord;
 import org.xjtu_learner.coffee_shop.dao.ShopChangeRecordMapper;
-import org.xjtu_learner.coffee_shop.entity.dto.RequireChangeItem;
 import org.xjtu_learner.coffee_shop.service.IShopChangeRecordService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 import org.xjtu_learner.coffee_shop.service.IShopService;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
-import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant.AUDIT_ONGOING;
-import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant.INVALID_ARGUMENT;
+import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant.*;
+import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant.AUDIT_NOT_ONGOING;
 
 /**
  * <p>
@@ -41,7 +40,7 @@ public class ShopChangeRecordServiceImpl extends ServiceImpl<ShopChangeRecordMap
     }
 
     @Override
-    public void saveInitRecord(ShopChangeFormDTO formDTO) {
+    public void saveInitRecord(ShopChangeForm formDTO) {
         if (!checkInitForm(formDTO)) throw new CommonException(
                 "商铺资料初始化表单不完整，门店资料初始化的必填字段：newNickname、" +
                         "newProvince、newCity、newArea、newStreet、newHouseNumber、newContactRealname、newContactPhone、" +
@@ -52,7 +51,7 @@ public class ShopChangeRecordServiceImpl extends ServiceImpl<ShopChangeRecordMap
     }
 
     @Override
-    public void saveRecord(ShopChangeFormDTO formDTO) {
+    public void saveRecord(ShopChangeForm formDTO) {
         Integer id = MerchantContext.get().getId();
 
         // 判断是否有正在进行的审核
@@ -75,19 +74,34 @@ public class ShopChangeRecordServiceImpl extends ServiceImpl<ShopChangeRecordMap
     }
 
     @Override
-    public PageDTO<RequireChangeItem> getChangeShopList(PageQuery pageQuery) {
-        Page<ShopChangeRecord> recordPage = lambdaQuery().select(
-                        ShopChangeRecord::getId,
-                        ShopChangeRecord::getMerchantId,
-                        ShopChangeRecord::getNickname,
-                        ShopChangeRecord::getCreateAt)
+    public PageDTO<ShopChangeRecordDTO> getChangeShopList(PageQuery pageQuery) {
+        Page<ShopChangeRecord> recordPage = lambdaQuery()
                 .eq(ShopChangeRecord::getAuditStatus, AuditStatus.ONGOING)
-                .page(pageQuery.toMpPageByCreateTimeDesc());
+                .page(pageQuery.toMpPage(pageQuery.getSortBy(), pageQuery.getIsAsc()));
 
-        return PageDTO.of(recordPage, record -> BeanUtil.copyProperties(record, RequireChangeItem.class));
+        return PageDTO.of(recordPage, record -> BeanUtil.copyProperties(record, ShopChangeRecordDTO.class));
     }
 
-    private boolean checkInitForm(ShopChangeFormDTO shopChangeForm) {
+    @Override
+    public void auditChangeShop(AuditChangeForm form) {
+        // 检查该记录是否正在审核中
+        ShopChangeRecord record = lambdaQuery().eq(ShopChangeRecord::getId, form.getId()).one();
+        if (record == null) throw new CommonException("变更申请记录不存在", NOT_EXIST);
+        if (record.getAuditStatus() != AuditStatus.ONGOING)
+            throw new CommonException("变更申请记录不在进行中", AUDIT_NOT_ONGOING);
+
+        lambdaUpdate()
+                .set(ShopChangeRecord::getAuditor, AdminContext.get().getId())
+                .set(form.getSuccess(), ShopChangeRecord::getAuditStatus, AuditStatus.SUCCEED)
+                .set(!form.getSuccess(), ShopChangeRecord::getAuditStatus, AuditStatus.FAILED)
+                .set(ShopChangeRecord::getAuditReason, form.getAuditReason())
+                .set(ShopChangeRecord::getAuditTime, LocalDateTime.now())
+                .set(ShopChangeRecord::getUpdateAt, LocalDateTime.now())
+                .eq(ShopChangeRecord::getId, form.getId())
+                .update();
+    }
+
+    private boolean checkInitForm(ShopChangeForm shopChangeForm) {
         // 检查表单中是否包含门店资料初始化的必填字段：newProvince、newCity、newArea、newStreet、newHouseNumber、
         // newContactRealname、newContactPhone、newBusinessLicense、newOpenTime、newCloseTime、newLongitude和newLatitude
         if (StrUtil.isBlank(shopChangeForm.getNewProvince())) return false;

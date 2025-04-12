@@ -3,7 +3,7 @@ package org.xjtu_learner.coffee_shop.entity.dto;
 import lombok.Data;
 
 @Data
-public class MerchantChangeFormDTO {
+public class MerchantChangeForm {
 
     /**
      * 变更后手机号码

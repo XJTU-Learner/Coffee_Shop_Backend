@@ -32,7 +32,7 @@ public class PageQuery {
     /**
      * 排序字段
      */
-    private String sortBy;
+    private String sortBy = DEFAULT_SORT_BY;
 
 
     public <T> Page<T> toMpPage(OrderItem... orderItems) {

@@ -1,7 +1,5 @@
 package org.xjtu_learner.coffee_shop.service.impl;
 
-import cn.hutool.core.bean.BeanUtil;
-import org.xjtu_learner.coffee_shop.entity.dto.ShopChangeFormDTO;
 import org.xjtu_learner.coffee_shop.entity.po.Shop;
 import org.xjtu_learner.coffee_shop.dao.ShopMapper;
 import org.xjtu_learner.coffee_shop.service.IShopService;

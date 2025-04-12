@@ -1,13 +1,8 @@
 package org.xjtu_learner.coffee_shop.service;
 
-import org.xjtu_learner.coffee_shop.entity.dto.PageDTO;
-import org.xjtu_learner.coffee_shop.entity.dto.PageQuery;
-import org.xjtu_learner.coffee_shop.entity.dto.ShopChangeFormDTO;
+import org.xjtu_learner.coffee_shop.entity.dto.*;
 import org.xjtu_learner.coffee_shop.entity.po.ShopChangeRecord;
 import com.baomidou.mybatisplus.extension.service.IService;
-import org.xjtu_learner.coffee_shop.entity.dto.RequireChangeItem;
-
-import java.util.List;
 
 /**
  * <p>
@@ -19,9 +14,11 @@ import java.util.List;
  */
 public interface IShopChangeRecordService extends IService<ShopChangeRecord> {
 
-    void saveInitRecord(ShopChangeFormDTO shopChangeForm);
+    void saveInitRecord(ShopChangeForm shopChangeForm);
 
-    void saveRecord(ShopChangeFormDTO formDTO);
+    void saveRecord(ShopChangeForm formDTO);
 
-    PageDTO<RequireChangeItem> getChangeShopList(PageQuery pageQuery);
+    PageDTO<ShopChangeRecordDTO> getChangeShopList(PageQuery pageQuery);
+
+    void auditChangeShop(AuditChangeForm form);
 }
