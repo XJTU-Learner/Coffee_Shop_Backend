@@ -5,6 +5,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.xjtu_learner.coffee_shop.common.auth.context.MemberContext;
 import org.xjtu_learner.coffee_shop.common.enums.OrderStatus;
 import org.xjtu_learner.coffee_shop.common.enums.PaymentStatus;
+import org.xjtu_learner.coffee_shop.common.enums.PreferentialType;
 import org.xjtu_learner.coffee_shop.common.exception.CommonException;
 import org.xjtu_learner.coffee_shop.config.RabbitMQConfig;
 import org.xjtu_learner.coffee_shop.entity.dto.GoodsOrderForm;
@@ -122,7 +123,7 @@ public class GoodsOrderServiceImpl extends ServiceImpl<GoodsOrderMapper, GoodsOr
             //更新优惠券状态为已使用
             couponsMemberRelation.setIsUsed(true);
             couponsMemberRelationService.updateById(couponsMemberRelation);
-            if(coupons.getPreferentialType()==1)
+            if(coupons.getPreferentialType()== PreferentialType.DISCOUNT)
             {
                 return coupons.getDiscountAmount();
             }

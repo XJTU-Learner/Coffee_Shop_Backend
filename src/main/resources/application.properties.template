@@ -9,6 +9,10 @@ spring.datasource.password=your-password
 spring.data.redis.url=redis://localhost:6379/
 spring.data.redis.database=1
 
+spring.rabbitmq.host=localhost
+spring.rabbitmq.port=5672
+spring.rabbitmq.username=guest
+spring.rabbitmq.password=guest
 
 #aliyun sms service
 aliyun.dysms.access-key-id=your-id
