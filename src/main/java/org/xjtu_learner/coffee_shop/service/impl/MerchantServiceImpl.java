@@ -8,8 +8,8 @@ import org.xjtu_learner.coffee_shop.common.auth.VerificationCodeManager;
 import org.xjtu_learner.coffee_shop.common.auth.session.impl.MerchantSessionManager;
 import org.xjtu_learner.coffee_shop.common.exception.CommonException;
 import org.xjtu_learner.coffee_shop.common.utils.HttpContext;
-import org.xjtu_learner.coffee_shop.entity.dto.LoginFormDTO;
-import org.xjtu_learner.coffee_shop.entity.dto.SignupFormDTO;
+import org.xjtu_learner.coffee_shop.entity.dto.LoginForm;
+import org.xjtu_learner.coffee_shop.entity.dto.SignupForm;
 import org.xjtu_learner.coffee_shop.entity.po.Merchant;
 import org.xjtu_learner.coffee_shop.dao.MerchantMapper;
 import org.xjtu_learner.coffee_shop.entity.po.Shop;
@@ -47,7 +47,7 @@ public class MerchantServiceImpl extends ServiceImpl<MerchantMapper, Merchant> i
     }
 
     @Override
-    public String login(LoginFormDTO loginForm) {
+    public String login(LoginForm loginForm) {
 
         // 校验账号与密码
         Merchant merchant = lambdaQuery()
@@ -72,7 +72,7 @@ public class MerchantServiceImpl extends ServiceImpl<MerchantMapper, Merchant> i
     }
 
     @Override
-    public String loginByMobile(LoginFormDTO loginForm) {
+    public String loginByMobile(LoginForm loginForm) {
         // 校验验证码
         if (!verificationCodeManager.verifyCode(MERCHANT_SESSION_CODE_PREFIX, loginForm.getMobile(), loginForm.getCode()))
             throw new CommonException("验证码错误", WRONG_VERIFICATION_CODE);
@@ -102,15 +102,15 @@ public class MerchantServiceImpl extends ServiceImpl<MerchantMapper, Merchant> i
 
     @Override
     @Transactional
-    public void signup(SignupFormDTO signupFormDTO) {
+    public void signup(SignupForm signupForm) {
         // 校验验证码
-        if (!verificationCodeManager.verifyCode(MERCHANT_SESSION_CODE_PREFIX, signupFormDTO.getMobile(), signupFormDTO.getCode()))
+        if (!verificationCodeManager.verifyCode(MERCHANT_SESSION_CODE_PREFIX, signupForm.getMobile(), signupForm.getCode()))
             throw new CommonException("验证码错误", WRONG_VERIFICATION_CODE);
 
         Merchant merchant = new Merchant();
-        merchant.setMobile(signupFormDTO.getMobile());
+        merchant.setMobile(signupForm.getMobile());
         // 将密码加密后存入
-        merchant.setPassword(passwordEncoder.encode(signupFormDTO.getPassword()));
+        merchant.setPassword(passwordEncoder.encode(signupForm.getPassword()));
         merchant.setNickname("临时商户" + RandomUtil.randomString(6));
         // 为该商户绑定门店
         Shop shop = new Shop();

@@ -1,7 +1,10 @@
 package org.xjtu_learner.coffee_shop.service;
 
+import org.xjtu_learner.coffee_shop.entity.dto.RelationDTO;
 import org.xjtu_learner.coffee_shop.entity.po.CouponsShopRelation;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import java.util.List;
 
 /**
  * <p>
@@ -13,4 +16,9 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface ICouponsShopRelationService extends IService<CouponsShopRelation> {
 
+    List<RelationDTO> getRelatedShopList(Integer id);
+
+    void createRelations(Integer couponsId, List<Integer> plus);
+
+    void deleteRelation(Integer couponsId, List<Integer> subtract);
 }

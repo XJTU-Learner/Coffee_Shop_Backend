@@ -4,7 +4,7 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import org.xjtu_learner.coffee_shop.common.auth.context.MemberContext;
 import org.xjtu_learner.coffee_shop.common.utils.RegexUtil;
-import org.xjtu_learner.coffee_shop.entity.dto.LoginFormDTO;
+import org.xjtu_learner.coffee_shop.entity.dto.LoginForm;
 import org.xjtu_learner.coffee_shop.entity.dto.MemberDTO;
 import org.xjtu_learner.coffee_shop.entity.dto.ApiResponse;
 import org.xjtu_learner.coffee_shop.service.IMemberService;
@@ -37,7 +37,7 @@ public class MemberAuthController {
     }
 
     @PostMapping("/loginByMobile")
-    public ApiResponse<String> loginByMobile(@Valid @RequestBody LoginFormDTO loginForm) {
+    public ApiResponse<String> loginByMobile(@Valid @RequestBody LoginForm loginForm) {
         String token = memberService.loginByMobile(loginForm);
         return ApiResponse.success(token);
     }

@@ -8,8 +8,8 @@ import org.xjtu_learner.coffee_shop.common.auth.VerificationCodeManager;
 import org.xjtu_learner.coffee_shop.common.auth.session.impl.AdminSessionManager;
 import org.xjtu_learner.coffee_shop.common.exception.CommonException;
 import org.xjtu_learner.coffee_shop.common.utils.HttpContext;
-import org.xjtu_learner.coffee_shop.entity.dto.LoginFormDTO;
-import org.xjtu_learner.coffee_shop.entity.dto.SignupFormDTO;
+import org.xjtu_learner.coffee_shop.entity.dto.LoginForm;
+import org.xjtu_learner.coffee_shop.entity.dto.SignupForm;
 import org.xjtu_learner.coffee_shop.entity.po.Admin;
 import org.xjtu_learner.coffee_shop.dao.AdminMapper;
 import org.xjtu_learner.coffee_shop.service.IAdminService;
@@ -46,7 +46,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
 
 
     @Override
-    public String login(LoginFormDTO loginForm) {
+    public String login(LoginForm loginForm) {
 
         // 校验账号与密码
         Admin admin = lambdaQuery()
@@ -72,7 +72,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     }
 
     @Override
-    public String loginByMobile(LoginFormDTO loginForm) {
+    public String loginByMobile(LoginForm loginForm) {
 
         // 校验验证码
         if (!verificationCodeManager.verifyCode(ADMIN_SESSION_CODE_PREFIX, loginForm.getMobile(), loginForm.getCode()))
@@ -103,21 +103,21 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     }
 
     @Override
-    public void signup(SignupFormDTO signupFormDTO) {
+    public void signup(SignupForm signupForm) {
 
         // 校验验证码
-        if (!verificationCodeManager.verifyCode(ADMIN_SESSION_CODE_PREFIX, signupFormDTO.getMobile(), signupFormDTO.getCode()))
+        if (!verificationCodeManager.verifyCode(ADMIN_SESSION_CODE_PREFIX, signupForm.getMobile(), signupForm.getCode()))
             throw new CommonException("验证码错误", WRONG_VERIFICATION_CODE);
 
 
         Admin admin = new Admin();
-        admin.setMobile(signupFormDTO.getMobile());
+        admin.setMobile(signupForm.getMobile());
         // 将密码加密后存入
-        admin.setPassword(passwordEncoder.encode(signupFormDTO.getPassword()));
-        if (StrUtil.isBlank(signupFormDTO.getNickname())) {
+        admin.setPassword(passwordEncoder.encode(signupForm.getPassword()));
+        if (StrUtil.isBlank(signupForm.getNickname())) {
             admin.setNickname("用户" + RandomUtil.randomString(6));
         } else {
-            admin.setNickname(signupFormDTO.getNickname());
+            admin.setNickname(signupForm.getNickname());
         }
         admin.setRegisterTime(LocalDateTime.now());
         try {

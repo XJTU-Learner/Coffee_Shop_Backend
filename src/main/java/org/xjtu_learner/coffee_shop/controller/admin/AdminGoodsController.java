@@ -1,10 +1,7 @@
 package org.xjtu_learner.coffee_shop.controller.admin;
 
 import org.springframework.web.bind.annotation.*;
-import org.xjtu_learner.coffee_shop.entity.dto.ApiResponse;
-import org.xjtu_learner.coffee_shop.entity.dto.GoodsForm;
-import org.xjtu_learner.coffee_shop.entity.dto.PageDTO;
-import org.xjtu_learner.coffee_shop.entity.dto.PageQuery;
+import org.xjtu_learner.coffee_shop.entity.dto.*;
 import org.xjtu_learner.coffee_shop.entity.po.Goods;
 import org.xjtu_learner.coffee_shop.service.IGoodsService;
 

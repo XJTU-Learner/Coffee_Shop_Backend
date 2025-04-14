@@ -1,7 +1,7 @@
 package org.xjtu_learner.coffee_shop.service;
 
-import org.xjtu_learner.coffee_shop.entity.dto.LoginFormDTO;
-import org.xjtu_learner.coffee_shop.entity.dto.SignupFormDTO;
+import org.xjtu_learner.coffee_shop.entity.dto.LoginForm;
+import org.xjtu_learner.coffee_shop.entity.dto.SignupForm;
 import org.xjtu_learner.coffee_shop.entity.po.Admin;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -15,13 +15,13 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IAdminService extends IService<Admin> {
 
-    String login(LoginFormDTO loginForm);
+    String login(LoginForm loginForm);
 
-    String loginByMobile(LoginFormDTO loginForm);
+    String loginByMobile(LoginForm loginForm);
 
     void logout();
 
     void sendCode(String mobile);
 
-    void signup(SignupFormDTO signupFormDTO);
+    void signup(SignupForm signupForm);
 }

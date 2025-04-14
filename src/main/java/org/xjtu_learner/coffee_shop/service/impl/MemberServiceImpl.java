@@ -7,7 +7,7 @@ import org.xjtu_learner.coffee_shop.common.auth.VerificationCodeManager;
 import org.xjtu_learner.coffee_shop.common.auth.session.impl.MemberSessionManager;
 import org.xjtu_learner.coffee_shop.common.exception.CommonException;
 import org.xjtu_learner.coffee_shop.common.utils.HttpContext;
-import org.xjtu_learner.coffee_shop.entity.dto.LoginFormDTO;
+import org.xjtu_learner.coffee_shop.entity.dto.LoginForm;
 import org.xjtu_learner.coffee_shop.entity.po.Member;
 import org.xjtu_learner.coffee_shop.dao.MemberMapper;
 import org.xjtu_learner.coffee_shop.service.IMemberService;
@@ -46,7 +46,7 @@ public class MemberServiceImpl extends ServiceImpl<MemberMapper, Member> impleme
     }
 
     @Override
-    public String loginByMobile(LoginFormDTO loginForm) {
+    public String loginByMobile(LoginForm loginForm) {
         // 校验验证码
         if (!verificationCodeManager.verifyCode(MEMBER_SESSION_CODE_PREFIX, loginForm.getMobile(), loginForm.getCode()))
             throw new CommonException("验证码错误", WRONG_VERIFICATION_CODE);
@@ -58,7 +58,11 @@ public class MemberServiceImpl extends ServiceImpl<MemberMapper, Member> impleme
 
         // 未查询到则注册新用户
         if (member == null) {
-            throw new CommonException("用户不存在", NOT_EXIST);
+                member = new Member();
+                member.setNickname("用户" + RandomUtil.randomString(6));
+                member.setRegisterTime(LocalDateTime.now());
+                member.setMobile(loginForm.getMobile());
+                save(member);
         }
 
         // 为用户在redis创建session
