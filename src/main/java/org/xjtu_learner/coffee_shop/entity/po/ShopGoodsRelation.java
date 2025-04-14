@@ -80,4 +80,10 @@ public class ShopGoodsRelation implements Serializable {
      */
     @TableField("update_at")
     private LocalDateTime updateAt;
+
+    /**
+     * 是否售空 0=否 1=是
+     */
+    @TableField("is_sold_out")
+    private Boolean isSoldOut;
 }

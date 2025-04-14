@@ -8,9 +8,9 @@ import java.util.Collections;
 
 public class Generator {
     public static void main(String[] args) {
-        FastAutoGenerator.create("jdbc:mysql://localhost:3306/coffee_shop", "root", "Xzh040305") // jdbc连接
+        FastAutoGenerator.create("jdbc:mysql://rm-cn-36z47skf5000638o.rwlb.rds.aliyuncs.com:3306/coffee_shop", "dopichen", "Clt123456") // jdbc连接
                 .globalConfig(builder -> {
-                    builder.author("xuezhihengg") // 设置作者
+                    builder.author("dopichen") // 设置作者
                             .outputDir("src/main/java"); // 指定输出目录
                 })
                 .packageConfig(builder ->
@@ -20,11 +20,11 @@ public class Generator {
                                 .service("service") // 设置 Service 包名
                                 .serviceImpl("service.impl") // 设置 Service Impl 包名
                                 .mapper("dao") // 设置 Mapper 包名
-                                .pathInfo(Collections.singletonMap(OutputFile.xml, "/Users/xuezhihengg/Projects/coffee_shop/src/main/resources/mapper")) // 设置mapperXml生成路径
+                                .pathInfo(Collections.singletonMap(OutputFile.xml, "/Users/chenlintao/codes/CoffeeShopBackHend/src/main/resources/mapper")) // 设置mapperXml生成路径
                                 .controller("controller") // 设置 Controller 包名
                 )
                 .strategyConfig(builder -> {
-                    builder.addInclude("tb_shop","tb_shop_change_record")
+                    builder.addInclude("tb_merchant_restock")
                             .addTablePrefix("tb_")
                             .entityBuilder()
                             .enableLombok() // 启用 Lombok

@@ -7,6 +7,9 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.xjtu_learner.coffee_shop.common.enums.OrderStatus;
+import org.xjtu_learner.coffee_shop.common.enums.PayMode;
+import org.xjtu_learner.coffee_shop.common.enums.PaymentStatus;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -32,12 +35,6 @@ public class GoodsOrder implements Serializable {
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
-
-    /**
-     * 订单id
-     */
-    @TableField("order_id")
-    private String orderId;
 
     /**
      * 用户id
@@ -97,7 +94,7 @@ public class GoodsOrder implements Serializable {
      * 商家实际收入
      */
     @TableField("merchant_income")
-    private String merchantIncome;
+    private BigDecimal merchantIncome;
 
     /**
      * 订单描述
@@ -121,13 +118,13 @@ public class GoodsOrder implements Serializable {
      * 订单状态 1=未付款 2=制作中3=待自取 4=已完成 5=售后处理中 6=售后处理完成 7=已取消(未支付)
      */
     @TableField("status")
-    private Integer status;
+    private OrderStatus status;
 
     /**
      * 支付方式 1=平台余额 2=微信支付
      */
     @TableField("payment_mode")
-    private Integer paymentMode;
+    private PayMode paymentMode;
 
     /**
      * 支付截止时间(五分钟内未付款的订单会被自动关闭)
@@ -139,7 +136,7 @@ public class GoodsOrder implements Serializable {
      * 交易状态 1=待支付 2=支付成功 3=支付失败 4=交易超时自动关闭
      */
     @TableField("payment_status")
-    private Integer paymentStatus;
+    private PaymentStatus paymentStatus;
 
     /**
      * 支付成功时间

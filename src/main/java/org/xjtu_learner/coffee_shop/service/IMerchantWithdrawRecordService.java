@@ -1,7 +1,10 @@
 package org.xjtu_learner.coffee_shop.service;
 
+import org.xjtu_learner.coffee_shop.entity.dto.WithdrawalForm;
 import org.xjtu_learner.coffee_shop.entity.po.MerchantWithdrawRecord;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import java.util.List;
 
 /**
  * <p>
@@ -12,5 +15,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @since 2025-04-03
  */
 public interface IMerchantWithdrawRecordService extends IService<MerchantWithdrawRecord> {
-
+    public List<MerchantWithdrawRecord> getAllWithdrawalRecord();
+    public boolean submitWithdrawalRecord(WithdrawalForm withdrawalForm);
 }

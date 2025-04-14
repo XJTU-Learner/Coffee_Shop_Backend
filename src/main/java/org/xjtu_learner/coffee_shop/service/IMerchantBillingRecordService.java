@@ -1,7 +1,10 @@
 package org.xjtu_learner.coffee_shop.service;
 
+import org.xjtu_learner.coffee_shop.entity.dto.MemberBillDTO;
 import org.xjtu_learner.coffee_shop.entity.po.MerchantBillingRecord;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import java.util.List;
 
 /**
  * <p>
@@ -12,5 +15,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @since 2025-04-03
  */
 public interface IMerchantBillingRecordService extends IService<MerchantBillingRecord> {
+    public List<MemberBillDTO> get_memberbill(String timeRange);
 
 }

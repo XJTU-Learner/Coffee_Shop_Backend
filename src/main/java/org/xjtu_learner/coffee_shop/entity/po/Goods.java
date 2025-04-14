@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 /**
  * <p>
  * 商品表
- * </p>
+ * </p >
  *
  * @author xuezhihengg
  * @since 2025-04-03

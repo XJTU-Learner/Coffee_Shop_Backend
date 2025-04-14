@@ -39,6 +39,12 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
 
         return PageDTO.of(page, Goods.class);
     }
+    @Override
+    public PageDTO<Goods> getNewGoodsList(PageQuery pageQuery) {
+        Page<Goods> page = lambdaQuery().eq(Goods::getIsNew,true)
+                .page(pageQuery.toMpPage(pageQuery.getSortBy(), pageQuery.getIsAsc()));
+        return PageDTO.of(page, Goods.class);
+    }
 
     @Override
     @Transactional

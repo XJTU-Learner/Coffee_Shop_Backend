@@ -23,4 +23,6 @@ public interface IGoodsService extends IService<Goods> {
     void updateGoods(GoodsForm form);
 
     void deleteGoods(Integer id);
+
+    PageDTO<Goods> getNewGoodsList(PageQuery pageQuery);
 }
