@@ -1,10 +1,14 @@
 package org.xjtu_learner.coffee_shop.service.impl;
 
+import org.xjtu_learner.coffee_shop.entity.dto.GoodsOrderForm;
+import org.xjtu_learner.coffee_shop.entity.dto.MemberOrderForm;
 import org.xjtu_learner.coffee_shop.entity.po.GoodsOrderDetail;
 import org.xjtu_learner.coffee_shop.dao.GoodsOrderDetailMapper;
 import org.xjtu_learner.coffee_shop.service.IGoodsOrderDetailService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
 
 /**
  * <p>
@@ -17,4 +21,22 @@ import org.springframework.stereotype.Service;
 @Service
 public class GoodsOrderDetailServiceImpl extends ServiceImpl<GoodsOrderDetailMapper, GoodsOrderDetail> implements IGoodsOrderDetailService {
 
+
+    public GoodsOrderDetail getByOrderId(int orderId){
+
+        return lambdaQuery().eq(GoodsOrderDetail::getOrderId,orderId).one();
+    }
+
+    public void creatOrderDetail(MemberOrderForm memberOrderForm,int orderId) {
+        for(GoodsOrderForm goodsOrderForm:memberOrderForm.getGoodsOrderFormList())
+        {
+            GoodsOrderDetail goodsOrderDetail =new GoodsOrderDetail();
+            goodsOrderDetail.setOrderId(orderId);
+            goodsOrderDetail.setGoodsId(goodsOrderForm.getGoods_id());
+            goodsOrderDetail.setCount(goodsOrderDetail.getCount());
+            goodsOrderDetail.setIsUsedCoupons(goodsOrderDetail.getIsUsedCoupons());
+            save(goodsOrderDetail);
+
+        }
+    }
 }

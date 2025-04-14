@@ -8,7 +8,7 @@ import lombok.Data;
 import static org.xjtu_learner.coffee_shop.common.constant.RegexPatterns.PHONE_REGEX;
 
 @Data
-public class SignupFormDTO {
+public class SignupForm {
 
     /**
      * 手机号

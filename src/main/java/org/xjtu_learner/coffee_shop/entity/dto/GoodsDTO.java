@@ -11,6 +11,7 @@ public class GoodsDTO {
      */
     private Integer id;
 
+
     /**
      * 商品名称
      */
@@ -29,7 +30,6 @@ public class GoodsDTO {
      * 分类标签
      */
     private String tag;
-
 
     private boolean isSoldOut;
 

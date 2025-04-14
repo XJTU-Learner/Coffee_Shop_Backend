@@ -5,13 +5,10 @@ import org.springframework.web.bind.annotation.*;
 import org.xjtu_learner.coffee_shop.common.auth.context.AdminContext;
 import org.xjtu_learner.coffee_shop.common.utils.RegexUtil;
 import org.xjtu_learner.coffee_shop.entity.dto.AdminDTO;
-import org.xjtu_learner.coffee_shop.entity.dto.LoginFormDTO;
-import org.xjtu_learner.coffee_shop.entity.dto.SignupFormDTO;
+import org.xjtu_learner.coffee_shop.entity.dto.LoginForm;
+import org.xjtu_learner.coffee_shop.entity.dto.SignupForm;
 import org.xjtu_learner.coffee_shop.entity.dto.ApiResponse;
 import org.xjtu_learner.coffee_shop.service.IAdminService;
-
-import java.math.BigDecimal;
-import java.math.BigInteger;
 
 @RestController
 @RequestMapping("/admin/auth")
@@ -24,7 +21,7 @@ public class AdminAuthController {
     }
 
     @PostMapping("/login")
-    public ApiResponse<String> login(@Valid @RequestBody LoginFormDTO loginForm) {
+    public ApiResponse<String> login(@Valid @RequestBody LoginForm loginForm) {
         String token = adminService.login(loginForm);
         return ApiResponse.success(token);
     }
@@ -40,7 +37,7 @@ public class AdminAuthController {
     }
 
     @PostMapping("/loginByMobile")
-    public ApiResponse<String> loginByMobile(@Valid @RequestBody LoginFormDTO loginForm) {
+    public ApiResponse<String> loginByMobile(@Valid @RequestBody LoginForm loginForm) {
         String token = adminService.loginByMobile(loginForm);
         return ApiResponse.success(token);
     }
@@ -57,8 +54,8 @@ public class AdminAuthController {
     }
 
     @PostMapping("/signup")
-    public ApiResponse<String> signup(@Valid @RequestBody SignupFormDTO signupFormDTO){
-        adminService.signup(signupFormDTO);
+    public ApiResponse<String> signup(@Valid @RequestBody SignupForm signupForm){
+        adminService.signup(signupForm);
         return ApiResponse.success("注册成功！");
     }
 }

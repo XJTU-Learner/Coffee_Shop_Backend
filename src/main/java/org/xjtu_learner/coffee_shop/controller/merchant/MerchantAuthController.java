@@ -4,9 +4,9 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import org.xjtu_learner.coffee_shop.common.auth.context.MerchantContext;
 import org.xjtu_learner.coffee_shop.common.utils.RegexUtil;
-import org.xjtu_learner.coffee_shop.entity.dto.LoginFormDTO;
+import org.xjtu_learner.coffee_shop.entity.dto.LoginForm;
 import org.xjtu_learner.coffee_shop.entity.dto.MerchantDTO;
-import org.xjtu_learner.coffee_shop.entity.dto.SignupFormDTO;
+import org.xjtu_learner.coffee_shop.entity.dto.SignupForm;
 import org.xjtu_learner.coffee_shop.entity.dto.ApiResponse;
 import org.xjtu_learner.coffee_shop.service.IMerchantService;
 
@@ -22,7 +22,7 @@ public class MerchantAuthController {
     }
 
     @PostMapping("/login")
-    public ApiResponse<String> login(@Valid @RequestBody LoginFormDTO loginForm) {
+    public ApiResponse<String> login(@Valid @RequestBody LoginForm loginForm) {
         String token = merchantService.login(loginForm);
         return ApiResponse.success(token);
     }
@@ -38,7 +38,7 @@ public class MerchantAuthController {
     }
 
     @PostMapping("/loginByMobile")
-    public ApiResponse<String> loginByMobile(@Valid @RequestBody LoginFormDTO loginForm) {
+    public ApiResponse<String> loginByMobile(@Valid @RequestBody LoginForm loginForm) {
         String token = merchantService.loginByMobile(loginForm);
         return ApiResponse.success(token);
     }
@@ -55,8 +55,8 @@ public class MerchantAuthController {
     }
 
     @PostMapping("/signup")
-    public ApiResponse<String> signup(@Valid @RequestBody SignupFormDTO signupFormDTO){
-        merchantService.signup(signupFormDTO);
+    public ApiResponse<String> signup(@Valid @RequestBody SignupForm signupForm){
+        merchantService.signup(signupForm);
         return ApiResponse.success("注册成功！");
     }
 }

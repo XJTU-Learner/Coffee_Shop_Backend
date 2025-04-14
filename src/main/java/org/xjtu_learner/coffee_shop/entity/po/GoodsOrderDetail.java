@@ -86,4 +86,7 @@ public class GoodsOrderDetail implements Serializable {
      */
     @TableField("update_at")
     private LocalDateTime updateAt;
+
+    @TableField("coupons_id")
+    private Integer couponsId;
 }

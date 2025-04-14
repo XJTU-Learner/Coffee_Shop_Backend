@@ -1,6 +1,10 @@
 package org.xjtu_learner.coffee_shop.service.impl;
 
+import io.lettuce.core.dynamic.CommandCreationException;
+import org.xjtu_learner.coffee_shop.common.auth.context.MerchantContext;
+import org.xjtu_learner.coffee_shop.common.exception.CommonException;
 import org.xjtu_learner.coffee_shop.entity.dto.GoodsDTO;
+import org.xjtu_learner.coffee_shop.entity.po.Goods;
 import org.xjtu_learner.coffee_shop.entity.po.Merchant;
 import org.xjtu_learner.coffee_shop.entity.po.ShopGoodsRelation;
 import org.xjtu_learner.coffee_shop.dao.ShopGoodsRelationMapper;
@@ -10,6 +14,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant.NOT_EXIST;
 
 /**
  * <p>
@@ -23,7 +29,14 @@ import java.util.List;
 public class ShopGoodsRelationServiceImpl extends ServiceImpl<ShopGoodsRelationMapper, ShopGoodsRelation> implements IShopGoodsRelationService {
 
 
-    MerchantServiceImpl merchantService;
+    private  final GoodsServiceImpl goodsService;
+    private  final MerchantServiceImpl merchantService;
+
+    public ShopGoodsRelationServiceImpl(GoodsServiceImpl goodsService, MerchantServiceImpl merchantService) {
+        this.goodsService = goodsService;
+        this.merchantService = merchantService;
+    }
+
     //获取全部在售全部商品列表
     public List<GoodsDTO> getAllGoods(int shopId){
         List<ShopGoodsRelation> goodsList = lambdaQuery().eq(
@@ -57,7 +70,36 @@ public class ShopGoodsRelationServiceImpl extends ServiceImpl<ShopGoodsRelationM
         }
         return  goodsDTOList;
     }
+    //添加商品
+    @Override
+    public Goods addNewGoods(int goodId) {
 
+        Goods good =goodsService.getById(goodId);
+        if(good!=null)
+        {
+            ShopGoodsRelation temp =lambdaQuery().eq(ShopGoodsRelation::getGoodsId,goodId).one();
+            if(temp!=null)
+            {
+                throw new CommonException("已经存在此商品请勿重复添加",NOT_EXIST);
+            }
+
+            ShopGoodsRelation shopGoodsRelation =new ShopGoodsRelation();
+            shopGoodsRelation.setShopId(MerchantContext.get().getShopId());
+            shopGoodsRelation.setGoodsId(good.getId());
+            shopGoodsRelation.setName(good.getName());
+            shopGoodsRelation.setImage(good.getImage());
+            shopGoodsRelation.setBasePrice(good.getBasePrice());
+            shopGoodsRelation.setTag(good.getTag());
+            shopGoodsRelation.setIsSoldOut(false);
+            save(shopGoodsRelation);
+
+        }
+        else {
+            throw new CommonException("暂无此商品",NOT_EXIST);
+        }
+        return  good;
+
+    }
 
 
 }
