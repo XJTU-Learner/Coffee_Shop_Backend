@@ -6,23 +6,25 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
 
+import java.util.HashMap;
+
 @Data
 public class PageQuery {
-    public static final Integer DEFAULT_PAGE_SIZE = 20;
-    public static final Integer DEFAULT_PAGE_NUM = 1;
+    public static final Long DEFAULT_PAGE_SIZE = 20L;
+    public static final Long DEFAULT_PAGE_NUM = 1L;
     public static final String DEFAULT_SORT_BY = "create_at";
 
     /**
      * 页码
      */
     @Min(value = 1, message = "页码不能小于1")
-    private Integer pageNo = DEFAULT_PAGE_NUM;
+    private Long pageNo = DEFAULT_PAGE_NUM;
 
     /**
      * 页大小
      */
     @Min(value = 1, message = "每页查询数量不能小于1")
-    private Integer pageSize = DEFAULT_PAGE_SIZE;
+    private Long pageSize = DEFAULT_PAGE_SIZE;
 
     /**
      * 是否升序

@@ -6,6 +6,9 @@ import org.xjtu_learner.coffee_shop.entity.dto.PageQuery;
 import org.xjtu_learner.coffee_shop.entity.po.Goods;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * <p>
  * 商品表 服务类
@@ -16,13 +19,15 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IGoodsService extends IService<Goods> {
 
-    PageDTO<Goods> getGoodsList(PageQuery pageQuery);
+    PageDTO<Goods> getGoodsPage(PageQuery pageQuery);
 
     void createGoods(GoodsForm form);
 
     void updateGoods(GoodsForm form);
 
     void deleteGoods(Integer id);
+
+    Map<Integer, Goods> getGoods(List<Integer> idList);
 
     PageDTO<Goods> getNewGoodsList(PageQuery pageQuery);
 }

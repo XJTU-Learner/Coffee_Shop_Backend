@@ -16,8 +16,8 @@ public class AdminGoodsController {
     }
 
     @GetMapping
-    public ApiResponse<PageDTO<Goods>> getGoodsList(PageQuery pageQuery){
-        PageDTO<Goods> goodsList = goodsService.getGoodsList(pageQuery);
+    public ApiResponse<PageDTO<Goods>> getGoodsPage(PageQuery pageQuery){
+        PageDTO<Goods> goodsList = goodsService.getGoodsPage(pageQuery);
         return ApiResponse.success(goodsList);
     }
 

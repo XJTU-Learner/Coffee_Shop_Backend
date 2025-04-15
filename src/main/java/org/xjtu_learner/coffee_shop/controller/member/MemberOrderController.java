@@ -19,7 +19,7 @@ public class MemberOrderController {
         this.goodsOrderService = goodsOrderService;
     }
 
-    @PostMapping("/createorder")
+    @PostMapping("/createOrder")
     public ApiResponse<String> createOrder(@RequestBody MemberOrderForm memberOrderForm){
 
         goodsOrderService.createOrder(memberOrderForm);

@@ -1,5 +1,6 @@
 package org.xjtu_learner.coffee_shop.service;
 
+import org.redisson.api.RBloomFilter;
 import org.xjtu_learner.coffee_shop.entity.po.Shop;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -12,5 +13,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @since 2025-04-06
  */
 public interface IShopService extends IService<Shop> {
+
+    public RBloomFilter<String> getBloomFilter();
 
 }
