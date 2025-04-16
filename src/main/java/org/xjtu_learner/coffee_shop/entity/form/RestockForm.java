@@ -1,4 +1,4 @@
-package org.xjtu_learner.coffee_shop.entity.dto;
+package org.xjtu_learner.coffee_shop.entity.form;
 
 
 import lombok.Data;

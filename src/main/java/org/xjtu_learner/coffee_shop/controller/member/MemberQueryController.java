@@ -1,12 +1,17 @@
 package org.xjtu_learner.coffee_shop.controller.member;
 
+import cn.hutool.core.bean.BeanUtil;
 import org.springframework.web.bind.annotation.*;
 import org.xjtu_learner.coffee_shop.entity.dto.*;
+import org.xjtu_learner.coffee_shop.entity.form.NearbySearchForm;
+import org.xjtu_learner.coffee_shop.entity.po.Shop;
 import org.xjtu_learner.coffee_shop.entity.po.ShopGoodsRelation;
 import org.xjtu_learner.coffee_shop.service.IShopGoodsRelationService;
 import org.xjtu_learner.coffee_shop.service.IShopService;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @RestController()
@@ -22,8 +27,18 @@ public class MemberQueryController {
     }
 
     @GetMapping("/nearbyShops")
-    public ApiResponse<PageDTO<ShopDTO>> getNearbyShops(@RequestBody PageQuery pageQuery) {
-        return null;
+    public ApiResponse<List<NearbySearchDTO<ShopDTO>>> getNearbyShopList(@RequestBody NearbySearchForm form) {
+
+        Map<Shop, String> nearbyShop = shopService.getNearbyShop(form);
+
+        List<NearbySearchDTO<ShopDTO>> nearbyShopDTO = nearbyShop.entrySet().stream()
+                .map((entry) -> (NearbySearchDTO.<ShopDTO>builder()
+                        .dto(BeanUtil.copyProperties(entry.getKey(), ShopDTO.class))
+                        .distance(entry.getValue())
+                        .build()))
+                .toList();
+
+        return ApiResponse.success(nearbyShopDTO);
     }
 
     @GetMapping("/shopGoods")

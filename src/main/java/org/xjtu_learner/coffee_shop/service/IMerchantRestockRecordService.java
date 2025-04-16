@@ -1,6 +1,6 @@
 package org.xjtu_learner.coffee_shop.service;
 
-import org.xjtu_learner.coffee_shop.entity.dto.RestockForm;
+import org.xjtu_learner.coffee_shop.entity.form.RestockForm;
 import org.xjtu_learner.coffee_shop.entity.po.MerchantRestockRecord;
 import com.baomidou.mybatisplus.extension.service.IService;
 

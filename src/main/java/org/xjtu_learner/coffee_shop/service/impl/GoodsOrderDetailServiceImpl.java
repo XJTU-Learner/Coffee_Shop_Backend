@@ -1,14 +1,12 @@
 package org.xjtu_learner.coffee_shop.service.impl;
 
-import org.xjtu_learner.coffee_shop.entity.dto.GoodsOrderForm;
-import org.xjtu_learner.coffee_shop.entity.dto.MemberOrderForm;
+import org.xjtu_learner.coffee_shop.entity.form.GoodsOrderForm;
+import org.xjtu_learner.coffee_shop.entity.form.MemberOrderForm;
 import org.xjtu_learner.coffee_shop.entity.po.GoodsOrderDetail;
 import org.xjtu_learner.coffee_shop.dao.GoodsOrderDetailMapper;
 import org.xjtu_learner.coffee_shop.service.IGoodsOrderDetailService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
 
 /**
  * <p>

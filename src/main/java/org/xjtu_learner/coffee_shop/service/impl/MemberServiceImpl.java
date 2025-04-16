@@ -7,7 +7,7 @@ import org.xjtu_learner.coffee_shop.common.auth.VerificationCodeManager;
 import org.xjtu_learner.coffee_shop.common.auth.session.impl.MemberSessionManager;
 import org.xjtu_learner.coffee_shop.common.exception.CommonException;
 import org.xjtu_learner.coffee_shop.common.utils.HttpContext;
-import org.xjtu_learner.coffee_shop.entity.dto.LoginForm;
+import org.xjtu_learner.coffee_shop.entity.form.LoginForm;
 import org.xjtu_learner.coffee_shop.entity.po.Member;
 import org.xjtu_learner.coffee_shop.dao.MemberMapper;
 import org.xjtu_learner.coffee_shop.service.IMemberService;

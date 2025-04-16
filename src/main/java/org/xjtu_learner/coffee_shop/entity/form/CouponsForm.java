@@ -1,11 +1,7 @@
-package org.xjtu_learner.coffee_shop.entity.dto;
+package org.xjtu_learner.coffee_shop.entity.form;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.xjtu_learner.coffee_shop.common.enums.PreferentialType;
 import org.xjtu_learner.coffee_shop.common.enums.TimeLimitType;

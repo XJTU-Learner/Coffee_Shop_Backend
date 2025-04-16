@@ -3,6 +3,8 @@ package org.xjtu_learner.coffee_shop.entity.dto;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.sql.Time;
+import java.time.LocalTime;
 
 @Data
 public class ShopDTO {
@@ -66,12 +68,12 @@ public class ShopDTO {
     /**
      * 店铺营业开始时间
      */
-    private String openTime;
+    private LocalTime openTime;
 
     /**
      * 店铺营业结束时间
      */
-    private String closeTime;
+    private LocalTime closeTime;
 
     /**
      * 经度

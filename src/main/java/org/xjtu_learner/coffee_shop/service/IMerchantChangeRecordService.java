@@ -1,6 +1,9 @@
 package org.xjtu_learner.coffee_shop.service;
 
 import org.xjtu_learner.coffee_shop.entity.dto.*;
+import org.xjtu_learner.coffee_shop.entity.form.AuditChangeForm;
+import org.xjtu_learner.coffee_shop.entity.form.MerchantChangeForm;
+import org.xjtu_learner.coffee_shop.entity.form.PageQuery;
 import org.xjtu_learner.coffee_shop.entity.po.MerchantChangeRecord;
 import com.baomidou.mybatisplus.extension.service.IService;
 

@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.xjtu_learner.coffee_shop.common.exception.CommonException;
 import org.xjtu_learner.coffee_shop.common.utils.BloomFilterUtil;
 import org.xjtu_learner.coffee_shop.entity.dto.*;
+import org.xjtu_learner.coffee_shop.entity.form.GoodsForm;
+import org.xjtu_learner.coffee_shop.entity.form.PageQuery;
 import org.xjtu_learner.coffee_shop.entity.po.Goods;
 import org.xjtu_learner.coffee_shop.dao.GoodsMapper;
 import org.xjtu_learner.coffee_shop.service.IGoodsService;
@@ -55,6 +57,10 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
         initCache();
 
         // 初始化布隆过滤器
+        initBloomFilter();
+    }
+
+    private void initBloomFilter() {
         this.bloomFilter = bloomFilterUtil.getBloomFilter(BLOOMFILTER_GOODS, BLOOMFILTER_GOODS_SIZE, BLOOMFILTER_GOODS_FPP);
         List<String> goodsIdList = lambdaQuery()
                 .select(Goods::getId)
@@ -77,7 +83,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
 
         Map<String, String> toCaCheString = toCaChe.stream()
                 .collect(Collectors.toMap(
-                        (entry) -> (CACHE_GOODS_PREFIX + entry.getId().toString()),
+                        (goods) -> (CACHE_GOODS_PREFIX + goods.getId().toString()),
                         JSONUtil::toJsonStr
                 ));
         // MSET批量插入Goods
@@ -104,7 +110,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
                 .stream()
                 .filter(Objects::nonNull)
                 .map((json) -> JSONUtil.toBean(json, Goods.class))
-                .collect(Collectors.toMap(Goods::getId, dto -> dto));
+                .collect(Collectors.toMap(Goods::getId, po -> po));
 
         // 组装没有命中的商品ID
         List<Integer> notHitIdList = goodsIdList.stream()
@@ -118,7 +124,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
                     .in(Goods::getId, notHitIdList)
                     .list()
                     .stream()
-                    .collect(Collectors.toMap(Goods::getId, dto -> dto));
+                    .collect(Collectors.toMap(Goods::getId, po -> po));
 
             // 将未命中的商品重新加载到缓存
             Map<String, String> toCacheString = notHitGoods.entrySet().stream()

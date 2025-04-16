@@ -1,10 +1,13 @@
 package org.xjtu_learner.coffee_shop.service;
 
-import org.redisson.api.RBloomFilter;
+import org.xjtu_learner.coffee_shop.entity.form.NearbySearchForm;
+import org.xjtu_learner.coffee_shop.entity.dto.PageDTO;
+import org.xjtu_learner.coffee_shop.entity.form.PageQuery;
 import org.xjtu_learner.coffee_shop.entity.po.Shop;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -18,5 +21,11 @@ public interface IShopService extends IService<Shop> {
 
     boolean checkShopIdValid(Integer shopId);
 
-    long checkShopIdValidBatch(List<Integer> shopIdList);
+    boolean checkShopIdValidBatch(List<Integer> shopIdList);
+
+    List<Shop> getShopList(List<Integer> shopIdList);
+
+    PageDTO<Shop> getShopPage(PageQuery pageQuery);
+
+    Map<Shop, String> getNearbyShop(NearbySearchForm form);
 }

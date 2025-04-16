@@ -1,12 +1,10 @@
-package org.xjtu_learner.coffee_shop.entity.dto;
+package org.xjtu_learner.coffee_shop.entity.form;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.OrderItem;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
-
-import java.util.HashMap;
 
 @Data
 public class PageQuery {

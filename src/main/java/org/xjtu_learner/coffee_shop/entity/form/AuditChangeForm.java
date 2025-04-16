@@ -1,8 +1,6 @@
-package org.xjtu_learner.coffee_shop.entity.dto;
+package org.xjtu_learner.coffee_shop.entity.form;
 
 import lombok.Data;
-
-import java.time.LocalDateTime;
 
 @Data
 public class AuditChangeForm {

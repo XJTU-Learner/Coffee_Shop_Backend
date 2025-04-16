@@ -1,8 +1,8 @@
 package org.xjtu_learner.coffee_shop.service;
 
-import org.xjtu_learner.coffee_shop.entity.dto.GoodsForm;
+import org.xjtu_learner.coffee_shop.entity.form.GoodsForm;
 import org.xjtu_learner.coffee_shop.entity.dto.PageDTO;
-import org.xjtu_learner.coffee_shop.entity.dto.PageQuery;
+import org.xjtu_learner.coffee_shop.entity.form.PageQuery;
 import org.xjtu_learner.coffee_shop.entity.po.Goods;
 import com.baomidou.mybatisplus.extension.service.IService;
 

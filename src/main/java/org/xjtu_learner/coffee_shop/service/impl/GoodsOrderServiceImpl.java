@@ -1,6 +1,5 @@
 package org.xjtu_learner.coffee_shop.service.impl;
 
-import jdk.jshell.Snippet;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.xjtu_learner.coffee_shop.common.auth.context.MemberContext;
 import org.xjtu_learner.coffee_shop.common.enums.OrderStatus;
@@ -8,8 +7,8 @@ import org.xjtu_learner.coffee_shop.common.enums.PaymentStatus;
 import org.xjtu_learner.coffee_shop.common.enums.PreferentialType;
 import org.xjtu_learner.coffee_shop.common.exception.CommonException;
 import org.xjtu_learner.coffee_shop.config.RabbitMQConfig;
-import org.xjtu_learner.coffee_shop.entity.dto.GoodsOrderForm;
-import org.xjtu_learner.coffee_shop.entity.dto.MemberOrderForm;
+import org.xjtu_learner.coffee_shop.entity.form.GoodsOrderForm;
+import org.xjtu_learner.coffee_shop.entity.form.MemberOrderForm;
 import org.xjtu_learner.coffee_shop.entity.po.*;
 import org.xjtu_learner.coffee_shop.dao.GoodsOrderMapper;
 import org.xjtu_learner.coffee_shop.service.IGoodsOrderService;

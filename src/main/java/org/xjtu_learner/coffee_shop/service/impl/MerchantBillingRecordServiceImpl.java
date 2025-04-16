@@ -1,19 +1,13 @@
 package org.xjtu_learner.coffee_shop.service.impl;
 
-import org.bouncycastle.oer.Switch;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.xjtu_learner.coffee_shop.common.auth.context.MerchantContext;
 import org.xjtu_learner.coffee_shop.entity.dto.MemberBillDTO;
-import org.xjtu_learner.coffee_shop.entity.dto.WithdrawalForm;
-import org.xjtu_learner.coffee_shop.entity.po.Merchant;
 import org.xjtu_learner.coffee_shop.entity.po.MerchantBillingRecord;
 import org.xjtu_learner.coffee_shop.dao.MerchantBillingRecordMapper;
-import org.xjtu_learner.coffee_shop.entity.po.MerchantWithdrawRecord;
 import org.xjtu_learner.coffee_shop.service.IMerchantBillingRecordService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;

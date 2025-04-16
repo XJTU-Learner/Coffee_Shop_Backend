@@ -29,4 +29,6 @@ public class RedisConstant {
     public static final String CACHE_GOODS_PREFIX = CACHE_KEY + "GOODS:";
     public static final Long CACHE_GOODS_TTL = 600L; // sec
     public static final String CACHE_SHOP_GOODS_RELATION_PREFIX = CACHE_KEY + "SHOP_GOODS_RELATION:";
+    public static final String CACHE_SHOP_PREFIX = CACHE_KEY + "SHOP:";
+    public static final String CACHE_SHOP_GEO_KEY = CACHE_KEY + "SHOP:GEO:";
 }

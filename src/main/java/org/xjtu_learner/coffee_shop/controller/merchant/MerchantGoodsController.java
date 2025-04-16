@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.xjtu_learner.coffee_shop.common.auth.context.MerchantContext;
 import org.xjtu_learner.coffee_shop.entity.dto.*;
+import org.xjtu_learner.coffee_shop.entity.form.PageQuery;
+import org.xjtu_learner.coffee_shop.entity.form.RestockForm;
 import org.xjtu_learner.coffee_shop.entity.po.Goods;
 import org.xjtu_learner.coffee_shop.entity.po.ShopGoodsRelation;
 import org.xjtu_learner.coffee_shop.service.IMerchantRestockRecordService;

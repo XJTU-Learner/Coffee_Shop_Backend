@@ -1,16 +1,14 @@
 package org.xjtu_learner.coffee_shop.service.impl;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.transaction.annotation.Transactional;
 import org.xjtu_learner.coffee_shop.common.enums.PreferentialType;
 import org.xjtu_learner.coffee_shop.common.enums.TimeLimitType;
 import org.xjtu_learner.coffee_shop.common.exception.CommonException;
-import org.xjtu_learner.coffee_shop.entity.dto.CouponsForm;
+import org.xjtu_learner.coffee_shop.entity.form.CouponsForm;
 import org.xjtu_learner.coffee_shop.entity.dto.PageDTO;
-import org.xjtu_learner.coffee_shop.entity.dto.PageQuery;
+import org.xjtu_learner.coffee_shop.entity.form.PageQuery;
 import org.xjtu_learner.coffee_shop.entity.po.*;
 import org.xjtu_learner.coffee_shop.dao.CouponsMapper;
 import org.xjtu_learner.coffee_shop.service.*;
@@ -18,8 +16,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant.INVALID_ARGUMENT;
 import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant.UPDATE_FAILED;

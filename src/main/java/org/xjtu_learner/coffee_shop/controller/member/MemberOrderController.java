@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.xjtu_learner.coffee_shop.entity.dto.ApiResponse;
-import org.xjtu_learner.coffee_shop.entity.dto.MemberOrderForm;
+import org.xjtu_learner.coffee_shop.entity.form.MemberOrderForm;
 import org.xjtu_learner.coffee_shop.service.impl.GoodsOrderServiceImpl;
 
 @RestController

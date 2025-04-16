@@ -11,6 +11,8 @@ import lombok.ToString;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+
 /**
  * <p>
  * 门店表
@@ -97,13 +99,13 @@ public class Shop implements Serializable {
      * 店铺营业开始时间
      */
     @TableField("open_time")
-    private String openTime;
+    private LocalTime openTime;
 
     /**
      * 店铺营业结束时间
      */
     @TableField("close_time")
-    private String closeTime;
+    private LocalTime closeTime;
 
     /**
      * 经度
