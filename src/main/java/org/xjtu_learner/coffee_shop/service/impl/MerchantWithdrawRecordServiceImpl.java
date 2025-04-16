@@ -1,5 +1,6 @@
 package org.xjtu_learner.coffee_shop.service.impl;
 
+import org.springframework.transaction.annotation.Transactional;
 import org.xjtu_learner.coffee_shop.common.auth.context.MerchantContext;
 import org.xjtu_learner.coffee_shop.entity.dto.WithdrawalForm;
 import org.xjtu_learner.coffee_shop.entity.po.Merchant;
@@ -35,6 +36,7 @@ public class MerchantWithdrawRecordServiceImpl extends ServiceImpl<MerchantWithd
         return list;
     }
 
+    @Transactional
     //提交提现申请
     public boolean submitWithdrawalRecord(WithdrawalForm withdrawalForm){
 

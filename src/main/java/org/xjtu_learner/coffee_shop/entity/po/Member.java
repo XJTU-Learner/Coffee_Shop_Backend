@@ -147,4 +147,8 @@ public class Member implements Serializable {
      */
     @TableField("update_at")
     private LocalDateTime updateAt;
+
+    @TableField("telegram")
+    private String telegram;
+
 }
