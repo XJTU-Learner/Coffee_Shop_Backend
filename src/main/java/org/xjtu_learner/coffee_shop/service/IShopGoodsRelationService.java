@@ -1,6 +1,5 @@
 package org.xjtu_learner.coffee_shop.service;
 
-import org.xjtu_learner.coffee_shop.entity.dto.GoodsDTO;
 import org.xjtu_learner.coffee_shop.entity.dto.PageDTO;
 import org.xjtu_learner.coffee_shop.entity.dto.PageQuery;
 import org.xjtu_learner.coffee_shop.entity.dto.ShopGoodsDTO;
@@ -20,15 +19,23 @@ import java.util.List;
  */
 public interface IShopGoodsRelationService extends IService<ShopGoodsRelation> {
 
+    List<ShopGoodsRelation> getShopGoodsList(Integer shopId);
 
-    public List<GoodsDTO> transferToGoodsDTOList(List<ShopGoodsRelation> goodsList);
+    PageDTO<ShopGoodsRelation> getShopGoodsPage(Integer shopId, PageQuery pageQuery);
 
-    public Goods addNewGoods(int goodId);
+    List<ShopGoodsDTO> getShopGoodsDTOList(List<ShopGoodsRelation> relationList);
 
-    List<ShopGoodsDTO> getShopGoodsList(Integer shopId);
+    List<ShopGoodsRelation> getSoldOutList(Integer shopId);
 
-    PageDTO<ShopGoodsDTO> getShopGoodsPage(Integer shopId, PageQuery pageQuery);
+    List<ShopGoodsRelation> getSoldOutShopGoodsRelationList(Integer shopId);
 
-    List<ShopGoodsDTO> getSoldOutList(Integer shopId);
+    void updateIsSoldOut(Integer shopGoodsRelationId, Boolean isSoldOut);
 
+    void checkExist(Integer shopGoodsRelationId);
+
+    void checkExistBatch(List<Integer> shopGoodsRelationIdList);
+
+    void deleteCache();
+
+    void addGoods(List<Integer> goodIdList);
 }

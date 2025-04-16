@@ -4,6 +4,8 @@ import org.redisson.api.RBloomFilter;
 import org.xjtu_learner.coffee_shop.entity.po.Shop;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.List;
+
 /**
  * <p>
  * 门店表 服务类
@@ -14,6 +16,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IShopService extends IService<Shop> {
 
-    public RBloomFilter<String> getBloomFilter();
+    boolean checkShopIdValid(Integer shopId);
 
+    long checkShopIdValidBatch(List<Integer> shopIdList);
 }

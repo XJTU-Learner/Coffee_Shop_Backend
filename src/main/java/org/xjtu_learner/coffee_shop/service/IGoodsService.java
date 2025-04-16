@@ -7,7 +7,6 @@ import org.xjtu_learner.coffee_shop.entity.po.Goods;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * <p>
@@ -19,6 +18,8 @@ import java.util.Map;
  */
 public interface IGoodsService extends IService<Goods> {
 
+    List<Goods> getGoodsList(List<Integer> idList);
+
     PageDTO<Goods> getGoodsPage(PageQuery pageQuery);
 
     void createGoods(GoodsForm form);
@@ -27,7 +28,9 @@ public interface IGoodsService extends IService<Goods> {
 
     void deleteGoods(Integer id);
 
-    Map<Integer, Goods> getGoods(List<Integer> idList);
-
     PageDTO<Goods> getNewGoodsList(PageQuery pageQuery);
+
+    boolean checkGoodsIdValid(Integer goodsId);
+
+    boolean checkGoodsIdValidBatch(List<Integer> goodsIdList);
 }

@@ -1,13 +1,14 @@
 package org.xjtu_learner.coffee_shop.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import org.redisson.api.RBloomFilter;
-import org.redisson.api.RedissonClient;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
+import org.springframework.transaction.annotation.Transactional;
+import org.xjtu_learner.coffee_shop.common.auth.context.MerchantContext;
 import org.xjtu_learner.coffee_shop.common.exception.CommonException;
-import org.xjtu_learner.coffee_shop.common.utils.CacheAgent;
 import org.xjtu_learner.coffee_shop.entity.dto.GoodsDTO;
 import org.xjtu_learner.coffee_shop.entity.dto.PageDTO;
 import org.xjtu_learner.coffee_shop.entity.dto.PageQuery;
@@ -24,6 +25,7 @@ import org.xjtu_learner.coffee_shop.service.IShopService;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant.INVALID_ARGUMENT;
 import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant.NOT_EXIST;
 import static org.xjtu_learner.coffee_shop.common.constant.RedisConstant.*;
 
@@ -39,66 +41,14 @@ import static org.xjtu_learner.coffee_shop.common.constant.RedisConstant.*;
 public class ShopGoodsRelationServiceImpl extends ServiceImpl<ShopGoodsRelationMapper, ShopGoodsRelation> implements IShopGoodsRelationService {
 
 
-    private final ShopGoodsRelationMapper shopGoodsRelationMapper;
     private final IShopService shopService;
     private final IGoodsService goodsService;
     private final StringRedisTemplate stringRedisTemplate;
-    private final RedissonClient redissonClient;
-    private final CacheAgent cacheAgent;
 
-    public ShopGoodsRelationServiceImpl(ShopGoodsRelationMapper shopGoodsRelationMapper, IShopService shopService, GoodsServiceImpl goodsService, StringRedisTemplate stringRedisTemplate, RedissonClient redissonClient, CacheAgent cacheAgent) {
-        this.shopGoodsRelationMapper = shopGoodsRelationMapper;
+    public ShopGoodsRelationServiceImpl(IShopService shopService, GoodsServiceImpl goodsService, StringRedisTemplate stringRedisTemplate) {
         this.shopService = shopService;
         this.goodsService = goodsService;
         this.stringRedisTemplate = stringRedisTemplate;
-        this.redissonClient = redissonClient;
-        this.cacheAgent = cacheAgent;
-    }
-
-
-    //转化成GoodsDTO列表
-    public List<GoodsDTO> transferToGoodsDTOList(List<ShopGoodsRelation> goodsList) {
-//        List<GoodsDTO> goodsDTOList = new ArrayList<>();
-//        for (ShopGoodsRelation goods : goodsList) {
-//            GoodsDTO goodsDTO = new GoodsDTO();
-//            goodsDTO.setId(goods.getGoodsId());
-//            goodsDTO.setName(goods.ge());
-//            goodsDTO.setImage(goods.getImage());
-//            goodsDTO.setBasePrice(String.valueOf(goods.getBasePrice()));
-//            goodsDTO.setTag(goods.getTag());
-//            goodsDTO.setIsSoldOut(false);
-//            goodsDTOList.add(goodsDTO);
-//        }
-//        return goodsDTOList;
-        return null;
-    }
-
-    //添加商品
-    @Override
-    public Goods addNewGoods(int goodId) {
-
-        Goods good = goodsService.getById(goodId);
-        if (good != null) {
-            ShopGoodsRelation temp = lambdaQuery().eq(ShopGoodsRelation::getGoodsId, goodId).one();
-            if (temp != null) {
-                throw new CommonException("已经存在此商品请勿重复添加", NOT_EXIST);
-            }
-//
-//            ShopGoodsRelation shopGoodsRelation = new ShopGoodsRelation();
-//            shopGoodsRelation.setShopId(MerchantContext.get().getShopId());
-//            shopGoodsRelation.setGoodsId(good.getId());
-//            shopGoodsRelation.setName(good.getName());
-//            shopGoodsRelation.setImage(good.getImage());
-//            shopGoodsRelation.setBasePrice(good.getBasePrice());
-//            shopGoodsRelation.setTag(good.getTag());
-//            shopGoodsRelation.setIsSoldOut(false);
-//            save(shopGoodsRelation);
-
-        } else {
-            throw new CommonException("暂无此商品", NOT_EXIST);
-        }
-        return good;
-
     }
 
 
@@ -106,18 +56,16 @@ public class ShopGoodsRelationServiceImpl extends ServiceImpl<ShopGoodsRelationM
      * 使用缓存查询列表类型结果
      * */
     @Override
-    public List<ShopGoodsDTO> getShopGoodsList(Integer shopId) {
+    public List<ShopGoodsRelation> getShopGoodsList(Integer shopId) {
 
         checkShopIdValid(shopId);
 
-        List<ShopGoodsRelation> relationList = getShopGoodsRelationList(shopId);
-
-        return getShopGoodsDTOList(relationList);
+        return getShopGoodsRelationList(shopId);
     }
 
 
     @Override
-    public PageDTO<ShopGoodsDTO> getShopGoodsPage(Integer shopId, PageQuery pageQuery) {
+    public PageDTO<ShopGoodsRelation> getShopGoodsPage(Integer shopId, PageQuery pageQuery) {
 
         checkShopIdValid(shopId);
 
@@ -125,12 +73,10 @@ public class ShopGoodsRelationServiceImpl extends ServiceImpl<ShopGoodsRelationM
 
         List<ShopGoodsRelation> relationList = relationPage.getList();
 
-        List<ShopGoodsDTO> all = getShopGoodsDTOList(relationList);
-
-        return PageDTO.<ShopGoodsDTO>builder()
+        return PageDTO.<ShopGoodsRelation>builder()
                 .total(relationPage.getTotal())
                 .pages(relationPage.getPages())
-                .list(all)
+                .list(relationList)
                 .build();
     }
 
@@ -186,8 +132,8 @@ public class ShopGoodsRelationServiceImpl extends ServiceImpl<ShopGoodsRelationM
                 .build();
     }
 
-
-    private List<ShopGoodsDTO> getShopGoodsDTOList(List<ShopGoodsRelation> relationList) {
+    @Override
+    public List<ShopGoodsDTO> getShopGoodsDTOList(List<ShopGoodsRelation> relationList) {
         List<ShopGoodsDTO> all = relationList.stream()
                 .map((po) -> (ShopGoodsDTO.builder()
                         .id(po.getId())
@@ -197,11 +143,16 @@ public class ShopGoodsRelationServiceImpl extends ServiceImpl<ShopGoodsRelationM
                 .toList();
 
         // 查询Goods缓存填充ShopGoodsDTO中的goodsInfo字段
-        List<Integer> idList = relationList.stream()
+        List<Integer> goodsIdList = relationList.stream()
                 .map(ShopGoodsRelation::getGoodsId)
                 .toList();
 
-        Map<Integer, Goods> goods = goodsService.getGoods(idList);
+        List<Goods> goodsList = goodsService.getGoodsList(goodsIdList);
+        Map<Integer, Goods> goods = goodsList.stream()
+                .collect(Collectors.toMap(
+                        Goods::getId,
+                        (po) -> (po)
+                ));
 
         // 遍历商品ID列表，组装对象列表
         all.forEach(dto -> {
@@ -213,23 +164,22 @@ public class ShopGoodsRelationServiceImpl extends ServiceImpl<ShopGoodsRelationM
 
     private void checkShopIdValid(Integer shopId) {
         // 通过布隆过滤器解决缓存穿透问题
-        RBloomFilter<String> bloomFilter = shopService.getBloomFilter();
-        if (!bloomFilter.contains(String.valueOf(shopId))) throw new CommonException("不存在的shopId", NOT_EXIST);
+        if (!shopService.checkShopIdValid(shopId)) throw new CommonException("不存在的shopId", NOT_EXIST);
     }
 
 
     @Override
-    public List<ShopGoodsDTO> getSoldOutList(Integer shopId) {
+    public List<ShopGoodsRelation> getSoldOutList(Integer shopId) {
 
         checkShopIdValid(shopId);
 
-        List<ShopGoodsRelation> relationList = getSoldOutShopGoodsRelationList(shopId);
+        return getSoldOutShopGoodsRelationList(shopId);
 
-        return getShopGoodsDTOList(relationList);
     }
 
 
-    private List<ShopGoodsRelation> getSoldOutShopGoodsRelationList(Integer shopId) {
+    @Override
+    public List<ShopGoodsRelation> getSoldOutShopGoodsRelationList(Integer shopId) {
 
         List<ShopGoodsRelation> cachedRelation = Objects.requireNonNull(stringRedisTemplate.opsForZSet().range(CACHE_SHOP_GOODS_RELATION_PREFIX + shopId, 0, -1))
                 .stream()
@@ -244,6 +194,25 @@ public class ShopGoodsRelationServiceImpl extends ServiceImpl<ShopGoodsRelationM
         return cachedRelation;
     }
 
+    @Override
+    public void updateIsSoldOut(Integer shopGoodsRelationId, Boolean isSoldOut) {
+
+        checkExist(shopGoodsRelationId);
+
+        boolean success = lambdaUpdate()
+                .set(ShopGoodsRelation::getIsSoldOut, isSoldOut)
+                .eq(ShopGoodsRelation::getId, shopGoodsRelationId)
+                .eq(ShopGoodsRelation::getShopId, MerchantContext.get().getShopId())
+                .eq(ShopGoodsRelation::getIsSoldOut, !isSoldOut)
+                .update();
+
+        if (!success) {
+            throw new CommonException("更新失败，可能原因：非本门店数据或商品状态已为" + isSoldOut, INVALID_ARGUMENT);
+        }
+
+        deleteCache();
+    }
+
     private List<ShopGoodsRelation> rebuildCache(Integer shopId) {
         List<ShopGoodsRelation> cachedRelation;
         cachedRelation = lambdaQuery()
@@ -256,6 +225,77 @@ public class ShopGoodsRelationServiceImpl extends ServiceImpl<ShopGoodsRelationM
 
         stringRedisTemplate.opsForZSet().add(CACHE_SHOP_GOODS_RELATION_PREFIX + shopId, toCache);
         return cachedRelation;
+    }
+
+
+    @Override
+    public void checkExist(Integer shopGoodsRelationId) {
+
+        List<ShopGoodsRelation> shopGoodsList = getShopGoodsList(MerchantContext.get().getShopId());
+
+        List<Integer> existed = shopGoodsList.stream().map(ShopGoodsRelation::getId).toList();
+
+        if (!existed.contains(shopGoodsRelationId)) {
+            throw new CommonException("该门店并不存在以下商品关系：" + shopGoodsRelationId, NOT_EXIST);
+        }
+    }
+
+
+    @Override
+    public void checkExistBatch(List<Integer> shopGoodsRelationIdList) {
+        // 检查restockList是否均为本门店所对应的商品
+        List<ShopGoodsRelation> shopGoodsList = getShopGoodsList(MerchantContext.get().getShopId());
+
+        List<Integer> existed = shopGoodsList.stream().map(ShopGoodsRelation::getId).toList();
+
+        List<Integer> notExist = shopGoodsRelationIdList.stream()
+                .filter((shopGoodsRelationId) -> (!existed.contains(shopGoodsRelationId)))
+                .toList();
+
+        if (CollectionUtil.isNotEmpty(notExist)) {
+            throw new CommonException("该门店并不存在以下商品关系：" + notExist, NOT_EXIST);
+        }
+    }
+
+
+    @Override
+    @Transactional
+    public void addGoods(List<Integer> goodIdList) {
+
+        Integer shopId = MerchantContext.get().getShopId();
+        List<Goods> goodsList = goodsService.getGoodsList(goodIdList);
+
+        // 去除goodsList中门店已经存在的商品
+        List<ShopGoodsRelation> shopGoodsList = getShopGoodsList(shopId);
+        List<Integer> existGoodsId = shopGoodsList.stream()
+                .map(ShopGoodsRelation::getGoodsId)
+                .toList();
+
+        List<Goods> afterRemoving = goodsList.stream()
+                .filter((po) -> (!existGoodsId.contains(po.getId())))
+                .toList();
+
+        List<ShopGoodsRelation> toSave = afterRemoving.stream()
+                .map((goods) -> {
+                    ShopGoodsRelation shopGoodsRelation = new ShopGoodsRelation();
+                    shopGoodsRelation.setShopId(shopId);
+                    shopGoodsRelation.setGoodsId(goods.getId());
+                    return shopGoodsRelation;
+                })
+                .toList();
+
+        saveBatch(toSave);
+
+        // 删除缓存
+        deleteCache();
+    }
+
+
+    @Override
+    public void deleteCache() {
+
+        Integer shopId = MerchantContext.get().getShopId();
+        stringRedisTemplate.delete(CACHE_SHOP_GOODS_RELATION_PREFIX + shopId);
     }
 
 }

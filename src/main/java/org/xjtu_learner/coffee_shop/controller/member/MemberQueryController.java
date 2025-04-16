@@ -2,6 +2,7 @@ package org.xjtu_learner.coffee_shop.controller.member;
 
 import org.springframework.web.bind.annotation.*;
 import org.xjtu_learner.coffee_shop.entity.dto.*;
+import org.xjtu_learner.coffee_shop.entity.po.ShopGoodsRelation;
 import org.xjtu_learner.coffee_shop.service.IShopGoodsRelationService;
 import org.xjtu_learner.coffee_shop.service.IShopService;
 
@@ -27,7 +28,10 @@ public class MemberQueryController {
 
     @GetMapping("/shopGoods")
     public ApiResponse<List<ShopGoodsDTO>> getShopGoodsList(@RequestParam("shopId") Integer shopId) {
-        List<ShopGoodsDTO> list = shopGoodsRelationService.getShopGoodsList(shopId);
-        return ApiResponse.success(list);
+
+        List<ShopGoodsRelation> list = shopGoodsRelationService.getShopGoodsList(shopId);
+        List<ShopGoodsDTO> shopGoodsDTOList = shopGoodsRelationService.getShopGoodsDTOList(list);
+
+        return ApiResponse.success(shopGoodsDTOList);
     }
 }

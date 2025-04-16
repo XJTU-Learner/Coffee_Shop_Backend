@@ -29,8 +29,4 @@ public class RedisConstant {
     public static final String CACHE_GOODS_PREFIX = CACHE_KEY + "GOODS:";
     public static final Long CACHE_GOODS_TTL = 600L; // sec
     public static final String CACHE_SHOP_GOODS_RELATION_PREFIX = CACHE_KEY + "SHOP_GOODS_RELATION:";
-
-    public static final String BLOOMFILTER_SHOP_GOODS_RELATION = "SHOP_GOODS_RELATION";
-    public static final Integer BLOOMFILTER_SHOP_GOODS_RELATION_SIZE = 2000;
-    public static final Float BLOOMFILTER_SHOP_GOODS_RELATION_FPP = 0.01F;
 }
