@@ -18,9 +18,9 @@ import java.util.List;
  */
 public interface IShopGoodsRelationService extends IService<ShopGoodsRelation> {
 
-    List<ShopGoodsRelation> getShopGoodsList(Integer shopId);
+    List<ShopGoodsRelation> getShopGoodsRelationList(Integer shopId);
 
-    PageDTO<ShopGoodsRelation> getShopGoodsPage(Integer shopId, PageQuery pageQuery);
+    PageDTO<ShopGoodsRelation> getShopGoodsRelationPage(Integer shopId, PageQuery pageQuery);
 
     List<ShopGoodsDTO> getShopGoodsDTOList(List<ShopGoodsRelation> relationList);
 

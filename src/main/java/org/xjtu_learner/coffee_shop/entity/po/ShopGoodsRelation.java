@@ -58,6 +58,12 @@ public class ShopGoodsRelation implements Serializable {
     private Integer totalSales;
 
     /**
+     * 是否已下架 0=否 1=是
+     */
+    @TableField("is_deleted")
+    private Boolean isDeleted;
+
+    /**
      * 创建时间
      */
     @TableField("create_at")

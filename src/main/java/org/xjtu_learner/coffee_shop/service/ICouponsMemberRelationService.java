@@ -1,7 +1,10 @@
 package org.xjtu_learner.coffee_shop.service;
 
+import org.xjtu_learner.coffee_shop.entity.dto.CouponsMemberDTO;
 import org.xjtu_learner.coffee_shop.entity.po.CouponsMemberRelation;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import java.util.List;
 
 /**
  * <p>
@@ -13,4 +16,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface ICouponsMemberRelationService extends IService<CouponsMemberRelation> {
 
+    List<CouponsMemberRelation> getCouponsMemberRelationList(Integer memberId);
+
+    List<CouponsMemberDTO> getCouponsMemberDTOList(List<CouponsMemberRelation> relationList);
 }

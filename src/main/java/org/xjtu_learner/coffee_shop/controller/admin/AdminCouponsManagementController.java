@@ -32,8 +32,8 @@ public class AdminCouponsManagementController {
     }
 
     @GetMapping
-    public ApiResponse<PageDTO<Coupons>> getCouponsList(PageQuery pageQuery) {
-        PageDTO<Coupons> couponsList = couponsService.getCouponsList(pageQuery);
+    public ApiResponse<PageDTO<Coupons>> getCouponsPage(PageQuery pageQuery) {
+        PageDTO<Coupons> couponsList = couponsService.getCouponsPage(pageQuery);
         return ApiResponse.success(couponsList);
     }
 

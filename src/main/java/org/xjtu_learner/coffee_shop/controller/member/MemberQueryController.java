@@ -2,16 +2,18 @@ package org.xjtu_learner.coffee_shop.controller.member;
 
 import cn.hutool.core.bean.BeanUtil;
 import org.springframework.web.bind.annotation.*;
+import org.xjtu_learner.coffee_shop.common.auth.context.MemberContext;
 import org.xjtu_learner.coffee_shop.entity.dto.*;
 import org.xjtu_learner.coffee_shop.entity.form.NearbySearchForm;
+import org.xjtu_learner.coffee_shop.entity.po.CouponsMemberRelation;
 import org.xjtu_learner.coffee_shop.entity.po.Shop;
 import org.xjtu_learner.coffee_shop.entity.po.ShopGoodsRelation;
+import org.xjtu_learner.coffee_shop.service.ICouponsMemberRelationService;
 import org.xjtu_learner.coffee_shop.service.IShopGoodsRelationService;
 import org.xjtu_learner.coffee_shop.service.IShopService;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 
 @RestController()
@@ -20,10 +22,12 @@ public class MemberQueryController {
 
     private final IShopService shopService;
     private final IShopGoodsRelationService shopGoodsRelationService;
+    private final ICouponsMemberRelationService couponsMemberRelationService;
 
-    public MemberQueryController(IShopService shopService, IShopGoodsRelationService shopGoodsRelationService) {
+    public MemberQueryController(IShopService shopService, IShopGoodsRelationService shopGoodsRelationService, ICouponsMemberRelationService couponsMemberRelationService) {
         this.shopService = shopService;
         this.shopGoodsRelationService = shopGoodsRelationService;
+        this.couponsMemberRelationService = couponsMemberRelationService;
     }
 
     @GetMapping("/nearbyShops")
@@ -44,9 +48,19 @@ public class MemberQueryController {
     @GetMapping("/shopGoods")
     public ApiResponse<List<ShopGoodsDTO>> getShopGoodsList(@RequestParam("shopId") Integer shopId) {
 
-        List<ShopGoodsRelation> list = shopGoodsRelationService.getShopGoodsList(shopId);
-        List<ShopGoodsDTO> shopGoodsDTOList = shopGoodsRelationService.getShopGoodsDTOList(list);
+        List<ShopGoodsRelation> relationList = shopGoodsRelationService.getShopGoodsRelationList(shopId);
+        List<ShopGoodsDTO> shopGoodsDTOList = shopGoodsRelationService.getShopGoodsDTOList(relationList);
 
         return ApiResponse.success(shopGoodsDTOList);
+    }
+
+    @GetMapping("/coupons")
+    public ApiResponse<List<CouponsMemberDTO>> getCouponsMemberList() {
+        Integer memberId = MemberContext.get().getId();
+
+        List<CouponsMemberRelation> relationList =  couponsMemberRelationService.getCouponsMemberRelationList(memberId);
+        List<CouponsMemberDTO> couponsMemberDTOList =  couponsMemberRelationService.getCouponsMemberDTOList(relationList);
+
+        return ApiResponse.success(couponsMemberDTOList);
     }
 }

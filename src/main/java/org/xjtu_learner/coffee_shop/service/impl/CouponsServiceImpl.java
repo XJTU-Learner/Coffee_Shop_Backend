@@ -1,11 +1,18 @@
 package org.xjtu_learner.coffee_shop.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import jakarta.annotation.PostConstruct;
+import org.redisson.api.RBloomFilter;
+import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.xjtu_learner.coffee_shop.common.enums.PreferentialType;
 import org.xjtu_learner.coffee_shop.common.enums.TimeLimitType;
 import org.xjtu_learner.coffee_shop.common.exception.CommonException;
+import org.xjtu_learner.coffee_shop.common.utils.BloomFilterUtil;
 import org.xjtu_learner.coffee_shop.entity.form.CouponsForm;
 import org.xjtu_learner.coffee_shop.entity.dto.PageDTO;
 import org.xjtu_learner.coffee_shop.entity.form.PageQuery;
@@ -16,9 +23,15 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
-import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant.INVALID_ARGUMENT;
-import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant.UPDATE_FAILED;
+import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant.*;
+import static org.xjtu_learner.coffee_shop.common.constant.RedisConstant.*;
+import static org.xjtu_learner.coffee_shop.common.utils.BloomFilterUtil.*;
 
 /**
  * <p>
@@ -31,20 +44,114 @@ import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant
 @Service
 public class CouponsServiceImpl extends ServiceImpl<CouponsMapper, Coupons> implements ICouponsService {
 
-    private final IGoodsService goodsService;
-    private final IShopService shopService;
+    private RBloomFilter<String> bloomFilter;
+    private final BloomFilterUtil bloomFilterUtil;
+    private final StringRedisTemplate stringRedisTemplate;
     private final ICouponsGoodsRelationService couponsGoodsRelationService;
     private final ICouponsShopRelationService couponsShopRelationService;
 
-    public CouponsServiceImpl(IGoodsService goodsService, IShopService shopService, ICouponsGoodsRelationService couponsGoodsRelationService, ICouponsShopRelationService couponsShopRelationService) {
-        this.goodsService = goodsService;
-        this.shopService = shopService;
+    public CouponsServiceImpl(StringRedisTemplate stringRedisTemplate, BloomFilterUtil bloomFilterUtil, ICouponsGoodsRelationService couponsGoodsRelationService, ICouponsShopRelationService couponsShopRelationService) {
+        this.stringRedisTemplate = stringRedisTemplate;
+        this.bloomFilterUtil = bloomFilterUtil;
         this.couponsGoodsRelationService = couponsGoodsRelationService;
         this.couponsShopRelationService = couponsShopRelationService;
     }
 
+    @PostConstruct
+    void init() {
+        // 预热缓存
+        initCache();
+
+        // 初始化布隆过滤器
+        initBloomFilter();
+    }
+
+    private void initBloomFilter() {
+        this.bloomFilter = bloomFilterUtil.getBloomFilter(BLOOMFILTER_COUPONS, BLOOMFILTER_COUPONS_SIZE, BLOOMFILTER_COUPONS_FPP);
+        List<String> couponsIdList = lambdaQuery()
+                .select(Coupons::getId)
+                .list()
+                .stream()
+                .map(Coupons::getId)
+                .map(Object::toString)
+                .toList();
+
+        bloomFilter.add(couponsIdList);
+    }
+
+    private void initCache() {
+
+        // 缓存预热
+        List<Coupons> toCaChe = lambdaQuery()
+                .eq(Coupons::getIsDeleted,false)
+                .list();
+
+        Map<String, String> toCaCheString = toCaChe.stream()
+                .collect(Collectors.toMap(
+                        (coupons) -> (CACHE_COUPONS_PREFIX + coupons.getId().toString()),
+                        JSONUtil::toJsonStr
+                ));
+        // MSET批量插入
+        stringRedisTemplate.opsForValue().multiSet(toCaCheString);
+
+    }
+
     @Override
-    public PageDTO<Coupons> getCouponsList(PageQuery pageQuery) {
+    public List<Coupons> getCouponsList(List<Integer> couponsIdList) {
+
+        if (!checkGoodsIdValidBatch(couponsIdList)) {
+            throw new CommonException("有不存在的couponsId", NOT_EXIST);
+        }
+
+        String keyPrefix = CACHE_COUPONS_PREFIX;
+        // 构造出List<String>的keyList，用于MGET批量查询
+        List<String> keyList = couponsIdList.stream()
+                .map(Object::toString)
+                .map(key -> String.format("%s%s", keyPrefix, key))
+                .toList();
+
+        // MGET批量从缓存中获取商品对象
+        Map<Integer, Coupons> cachedCoupons = Objects.requireNonNull(stringRedisTemplate.opsForValue().multiGet(keyList))
+                .stream()
+                .filter(Objects::nonNull)
+                .map((json) -> JSONUtil.toBean(json, Coupons.class))
+                .collect(Collectors.toMap(Coupons::getId, po -> po));
+
+        // 组装没有命中的商品ID
+        List<Integer> notHitIdList = couponsIdList.stream()
+                .filter(couponsId -> !cachedCoupons.containsKey(couponsId))
+                .toList();
+
+        Map<Integer, Coupons> notHitGoods;
+        if (CollectionUtil.isNotEmpty(notHitIdList)) {
+            // 批量从数据库查询未命中的商品信息列表
+            notHitGoods = lambdaQuery()
+                    .in(Coupons::getId, notHitIdList)
+                    .eq(Coupons::getIsDeleted,false)  // 如果已被删除的优惠券将不会被加入缓存
+                    .list()
+                    .stream()
+                    .collect(Collectors.toMap(Coupons::getId, po -> po));
+
+            // 将未命中的优惠券重新加载到缓存
+            Map<String, String> toCacheString = notHitGoods.entrySet().stream()
+                    .collect(Collectors.toMap(
+                            (entry) -> (keyPrefix + entry.getKey().toString()),
+                            (entry) -> (JSONUtil.toJsonStr(entry.getValue()))
+                    ));
+            // MSET批量插入Coupons
+            stringRedisTemplate.opsForValue().multiSet(toCacheString);
+        } else {
+            notHitGoods = Collections.emptyMap();
+        }
+
+        cachedCoupons.putAll(notHitGoods);
+        return cachedCoupons.values().stream().toList();
+    }
+
+    @Override
+    public PageDTO<Coupons> getCouponsPage(PageQuery pageQuery) {
+
+        // TODO: 实现缓存+分页
         Page<Coupons> page = lambdaQuery()
                 .page(pageQuery.toMpPage(pageQuery.getSortBy(), pageQuery.getIsAsc()));
 
@@ -129,12 +236,9 @@ public class CouponsServiceImpl extends ServiceImpl<CouponsMapper, Coupons> impl
             }
 
             if (form.getValidType() == TimeLimitType.RELATIVE) {
-                coupons.setValidType(form.getValidType());
                 if (form.getValidDays() == null) {
                     throw new CommonException("时效类型为相对时效但是validDays参数为空", INVALID_ARGUMENT);
                 }
-                coupons.setValidStartTime(LocalDateTime.now());
-                coupons.setValidEndTime(LocalDateTime.now().plusDays(form.getValidDays()));
             }
         }
     }
@@ -169,15 +273,22 @@ public class CouponsServiceImpl extends ServiceImpl<CouponsMapper, Coupons> impl
             throw new CommonException("未指定指定主键id", INVALID_ARGUMENT);
         }
         boolean success = lambdaUpdate()
-                .set(Coupons::getIsDelete, true)
+                .set(Coupons::getIsDeleted, true)
                 .set(Coupons::getUpdateAt, LocalDateTime.now())
-                .eq(Coupons::getIsDelete, false)
+                .eq(Coupons::getIsDeleted, false)
                 .eq(Coupons::getId, id)
                 .update();
 
         if (!success) {
             throw new CommonException("删除失败，可能原因：该优惠券已经删除或不存在", UPDATE_FAILED);
         }
+    }
+
+    @Override
+    public boolean checkGoodsIdValidBatch(List<Integer> couponsIdList) {
+        List<String> list = couponsIdList.stream().map(Object::toString).toList();
+        long contains = bloomFilter.contains(list);
+        return contains == couponsIdList.size();
     }
 
 

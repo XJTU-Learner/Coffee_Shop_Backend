@@ -38,7 +38,7 @@ public class MerchantGoodsController {
     public ApiResponse<PageDTO<ShopGoodsDTO>> getShopGoodsPage(PageQuery pageQuery) {
 
         int shopId = MerchantContext.get().getShopId();
-        PageDTO<ShopGoodsRelation> goodsList = shopGoodsRelationService.getShopGoodsPage(shopId, pageQuery);
+        PageDTO<ShopGoodsRelation> goodsList = shopGoodsRelationService.getShopGoodsRelationPage(shopId, pageQuery);
         List<ShopGoodsDTO> shopGoodsDTOList = shopGoodsRelationService.getShopGoodsDTOList(goodsList.getList());
 
         PageDTO<ShopGoodsDTO> pageDTO = PageDTO.<ShopGoodsDTO>builder()

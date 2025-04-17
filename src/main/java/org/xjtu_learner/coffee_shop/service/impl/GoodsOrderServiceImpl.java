@@ -114,7 +114,7 @@ public class GoodsOrderServiceImpl extends ServiceImpl<GoodsOrderMapper, GoodsOr
 
             int couponsId=couponsMemberRelation.getCouponsId();
             Coupons coupons=couponsService.getById(couponsId);
-            if(coupons==null || coupons.getIsDelete())
+            if(coupons==null || coupons.getIsDeleted())
             {
                 return new BigDecimal(0);
             }

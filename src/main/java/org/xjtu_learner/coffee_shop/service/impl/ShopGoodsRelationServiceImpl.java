@@ -51,36 +51,10 @@ public class ShopGoodsRelationServiceImpl extends ServiceImpl<ShopGoodsRelationM
     }
 
 
-    /*
-     * 使用缓存查询列表类型结果
-     * */
     @Override
-    public List<ShopGoodsRelation> getShopGoodsList(Integer shopId) {
+    public List<ShopGoodsRelation> getShopGoodsRelationList(Integer shopId) {
 
         checkShopIdValid(shopId);
-
-        return getShopGoodsRelationList(shopId);
-    }
-
-
-    @Override
-    public PageDTO<ShopGoodsRelation> getShopGoodsPage(Integer shopId, PageQuery pageQuery) {
-
-        checkShopIdValid(shopId);
-
-        PageDTO<ShopGoodsRelation> relationPage = getShopGoodsRelationPage(shopId, pageQuery);
-
-        List<ShopGoodsRelation> relationList = relationPage.getList();
-
-        return PageDTO.<ShopGoodsRelation>builder()
-                .total(relationPage.getTotal())
-                .pages(relationPage.getPages())
-                .list(relationList)
-                .build();
-    }
-
-
-    private List<ShopGoodsRelation> getShopGoodsRelationList(Integer shopId) {
 
         // 通过缓存查询ShopGoodsDTO
         String key = CACHE_SHOP_GOODS_RELATION_PREFIX + shopId;
@@ -98,7 +72,10 @@ public class ShopGoodsRelationServiceImpl extends ServiceImpl<ShopGoodsRelationM
     }
 
 
-    private PageDTO<ShopGoodsRelation> getShopGoodsRelationPage(Integer shopId, PageQuery pageQuery) {
+    @Override
+    public PageDTO<ShopGoodsRelation> getShopGoodsRelationPage(Integer shopId, PageQuery pageQuery) {
+
+        checkShopIdValid(shopId);
 
         String key = CACHE_SHOP_GOODS_RELATION_PREFIX + shopId;
 
@@ -213,9 +190,10 @@ public class ShopGoodsRelationServiceImpl extends ServiceImpl<ShopGoodsRelationM
     }
 
     private List<ShopGoodsRelation> rebuildCache(Integer shopId) {
-        List<ShopGoodsRelation> cachedRelation;
-        cachedRelation = lambdaQuery()
+
+        List<ShopGoodsRelation>  cachedRelation = lambdaQuery()
                 .eq(ShopGoodsRelation::getShopId, shopId)
+                .eq(ShopGoodsRelation::getIsDeleted,false)  // 已下架的商品不加入缓存
                 .list();
 
         Set<ZSetOperations.TypedTuple<String>> toCache = cachedRelation.stream()
@@ -230,7 +208,7 @@ public class ShopGoodsRelationServiceImpl extends ServiceImpl<ShopGoodsRelationM
     @Override
     public void checkExist(Integer shopGoodsRelationId) {
 
-        List<ShopGoodsRelation> shopGoodsList = getShopGoodsList(MerchantContext.get().getShopId());
+        List<ShopGoodsRelation> shopGoodsList = getShopGoodsRelationList(MerchantContext.get().getShopId());
 
         List<Integer> existed = shopGoodsList.stream().map(ShopGoodsRelation::getId).toList();
 
@@ -243,7 +221,7 @@ public class ShopGoodsRelationServiceImpl extends ServiceImpl<ShopGoodsRelationM
     @Override
     public void checkExistBatch(List<Integer> shopGoodsRelationIdList) {
         // 检查restockList是否均为本门店所对应的商品
-        List<ShopGoodsRelation> shopGoodsList = getShopGoodsList(MerchantContext.get().getShopId());
+        List<ShopGoodsRelation> shopGoodsList = getShopGoodsRelationList(MerchantContext.get().getShopId());
 
         List<Integer> existed = shopGoodsList.stream().map(ShopGoodsRelation::getId).toList();
 
@@ -265,7 +243,7 @@ public class ShopGoodsRelationServiceImpl extends ServiceImpl<ShopGoodsRelationM
         List<Goods> goodsList = goodsService.getGoodsList(goodIdList);
 
         // 去除goodsList中门店已经存在的商品
-        List<ShopGoodsRelation> shopGoodsList = getShopGoodsList(shopId);
+        List<ShopGoodsRelation> shopGoodsList = getShopGoodsRelationList(shopId);
         List<Integer> existGoodsId = shopGoodsList.stream()
                 .map(ShopGoodsRelation::getGoodsId)
                 .toList();
