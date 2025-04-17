@@ -16,4 +16,6 @@ public interface IGoodsOrderService extends IService<GoodsOrder> {
 
     void createOrder(MemberOrderForm memberOrderForm);
 
+    void payOrder( int OrderId);
+
 }

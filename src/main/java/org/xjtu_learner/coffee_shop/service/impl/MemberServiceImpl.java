@@ -2,7 +2,10 @@ package org.xjtu_learner.coffee_shop.service.impl;
 
 import cn.binarywang.wx.miniapp.api.WxMaService;
 import cn.hutool.core.util.RandomUtil;
+import me.chanjar.weixin.common.annotation.Required;
 import me.chanjar.weixin.common.error.WxErrorException;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.xjtu_learner.coffee_shop.common.auth.VerificationCodeManager;
 import org.xjtu_learner.coffee_shop.common.auth.session.impl.MemberSessionManager;
 import org.xjtu_learner.coffee_shop.common.exception.CommonException;
@@ -14,6 +17,7 @@ import org.xjtu_learner.coffee_shop.service.IMemberService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant.*;
@@ -100,5 +104,21 @@ public class MemberServiceImpl extends ServiceImpl<MemberMapper, Member> impleme
         } catch (WxErrorException e) {
             throw new CommonException("登陆异常",WX_LOGIN_ERROR);
         }
+    }
+
+
+
+    /*
+    *
+    * 支付相关操作
+    *
+    * */
+
+
+    //更新余额
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void updateBalance(Member member){
+        updateById(member);
+
     }
 }

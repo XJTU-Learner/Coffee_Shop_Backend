@@ -1,6 +1,7 @@
 package org.xjtu_learner.coffee_shop.controller.merchant;
 
 
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -34,6 +35,7 @@ public class MerchantBillController {
     }
 
     @RequestMapping("/apply_withdrawal")
+    @Transactional
     //商家发起提现申请
     public ApiResponse<String> apply_withdrawal(@RequestBody WithdrawalForm form){
 
