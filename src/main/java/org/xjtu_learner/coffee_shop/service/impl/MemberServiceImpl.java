@@ -106,6 +106,21 @@ public class MemberServiceImpl extends ServiceImpl<MemberMapper, Member> impleme
         }
     }
 
+    //TODO: 完成用户支付密码系统
+    @Override
+    public boolean checkPaymentPassword(Integer id, Integer paymentPassword) {
+        return true;
+    }
+
+    @Override
+    public boolean deductBalance(Integer memberId, BigDecimal amount) {
+        return lambdaUpdate()
+                .setDecrBy(Member::getBalance, amount)
+                .eq(Member::getId, memberId)
+                .ge(Member::getBalance, amount)
+                .update();
+    }
+
 
 
     /*

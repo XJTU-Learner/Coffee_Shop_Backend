@@ -50,20 +50,20 @@ public class Coupons implements Serializable {
     /**
      * 折扣额度
      */
-    @TableField("discount_amount")
-    private BigDecimal discountAmount;
+    @TableField("discount")
+    private BigDecimal discount;
 
     /**
      * 满足价格（元，满足该价格才能使用）
      */
-    @TableField("limited_price")
-    private BigDecimal limitedPrice;
+    @TableField("limited_amount")
+    private BigDecimal limitedAmount;
 
     /**
      * 减价额度(元)
      */
-    @TableField("reduced_price")
-    private BigDecimal reducedPrice;
+    @TableField("reduced_amount")
+    private BigDecimal reducedAmount;
 
     /**
      * 使用规则描述

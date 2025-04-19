@@ -18,6 +18,8 @@ import java.util.List;
  */
 public interface ICouponsService extends IService<Coupons> {
 
+    Coupons getCoupons(Integer couponsId);
+
     List<Coupons> getCouponsList(List<Integer> couponsIdList);
 
     PageDTO<Coupons> getCouponsPage(PageQuery pageQuery);
@@ -27,6 +29,8 @@ public interface ICouponsService extends IService<Coupons> {
     void updateCoupons(CouponsForm form);
 
     void deleteCoupons(Integer id);
+
+    boolean checkGoodsIdValid(Integer couponsId);
 
     boolean checkGoodsIdValidBatch(List<Integer> couponsIdList);
 }

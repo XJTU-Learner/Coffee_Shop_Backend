@@ -46,28 +46,28 @@ public class GoodsOrderDetail implements Serializable {
     private Integer goodsId;
 
     /**
-     * 购买数量
+     * 详情
      */
-    @TableField("count")
-    private Integer count;
+    @TableField("info")
+    private String info;
 
     /**
-     * 该商品是否使用了优惠券 0=否 1=是
+     * 用户优惠券关系id
      */
-    @TableField("is_used_coupons")
-    private Boolean isUsedCoupons;
+    @TableField("coupons_member_relation_id")
+    private Integer couponsMemberRelationId;
 
     /**
      * 优惠券折扣金额/优惠券满减金额
      */
-    @TableField("coupons_discount_price")
-    private BigDecimal couponsDiscountPrice;
+    @TableField("coupons_discount_amount")
+    private BigDecimal couponsDiscountAmount;
 
     /**
      * 实付款
      */
-    @TableField("actual_price")
-    private BigDecimal actualPrice;
+    @TableField("actual_amount")
+    private BigDecimal actualAmount;
 
     /**
      * 是否删除 0=正常 1=删除
@@ -86,7 +86,4 @@ public class GoodsOrderDetail implements Serializable {
      */
     @TableField("update_at")
     private LocalDateTime updateAt;
-
-    @TableField("coupons_id")
-    private Integer couponsId;
 }

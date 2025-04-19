@@ -1,6 +1,6 @@
 package org.xjtu_learner.coffee_shop.service;
 
-import org.xjtu_learner.coffee_shop.entity.form.MemberOrderForm;
+import org.xjtu_learner.coffee_shop.entity.form.GoodsOrderForm;
 import org.xjtu_learner.coffee_shop.entity.po.GoodsOrder;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -14,8 +14,11 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IGoodsOrderService extends IService<GoodsOrder> {
 
-    void createOrder(MemberOrderForm memberOrderForm);
+    Integer createOrder(GoodsOrderForm goodsOrderForm);
 
-    void payOrder( int OrderId);
+    boolean markOrderPaySuccess(Integer orderId);
 
+    boolean timeoutCancel(Integer orderId);
+
+    void payOrderByBalance(Integer orderId);
 }

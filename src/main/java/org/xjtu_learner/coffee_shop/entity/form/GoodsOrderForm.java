@@ -1,23 +1,42 @@
 package org.xjtu_learner.coffee_shop.entity.form;
 
+
 import lombok.Data;
+import org.xjtu_learner.coffee_shop.common.enums.PaymentMode;
+
+import java.util.List;
 
 @Data
 public class GoodsOrderForm {
 
-    //商品id
-    int goods_id;
+    /**
+     * 商家id
+     */
+    private Integer merchantId;
 
-    //商品数量
-    int count;
 
-    //是否使用优惠券
-    Boolean is_used_coupons;
+    /**
+     * 备注
+     */
+    private String remark;
 
-    //实际价格
-    double actual_price;
 
-    //使用用户优惠券id（折扣券）
-    int coupons_id;
+    /**
+     * 使用的满减优惠券id
+     */
+    private Integer couponsMemberRelationId;
+
+
+
+    /**
+     * 支付方式
+     */
+    private PaymentMode paymentMode;
+
+
+    /**
+     * 商品列表详情
+     */
+    List<GoodsOrderDetailForm> detail;
 
 }

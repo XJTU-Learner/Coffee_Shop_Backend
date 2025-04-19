@@ -11,4 +11,9 @@ public class ExceptionCodeConstant {
     public final static int AUDIT_ONGOING = 10007;
     public final static int AUDIT_NOT_ONGOING = 10008;
     public final static int UPDATE_FAILED = 10009;
+    public final static int NOT_AVAILABLE = 10010;
+    public final static int EXPIRED = 10011;
+    public final static int MESSAGE_SEND_FAILED = 10012;
+    public final static int TO_BE_SUPPLEMENTED = 10;
 }
+

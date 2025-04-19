@@ -19,4 +19,6 @@ public interface ICouponsMemberRelationService extends IService<CouponsMemberRel
     List<CouponsMemberRelation> getCouponsMemberRelationList(Integer memberId);
 
     List<CouponsMemberDTO> getCouponsMemberDTOList(List<CouponsMemberRelation> relationList);
+
+    Integer checkValid(Integer memberId, Integer couponsMemberRelationId);
 }

@@ -80,10 +80,6 @@ public class CouponsMemberDTO {
      */
     private Boolean isExpired;
 
-    /**
-     * 是否有效，0=否，1=是 -
-     */
-    private Boolean isValid;
 
     /**
      * 优惠券发放来源 1=积分兑换 2=活动发放 3=秒杀抢购

@@ -4,6 +4,8 @@ import org.xjtu_learner.coffee_shop.entity.form.LoginForm;
 import org.xjtu_learner.coffee_shop.entity.po.Member;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.math.BigDecimal;
+
 /**
  * <p>
  * 用户表 服务类
@@ -21,4 +23,8 @@ public interface IMemberService extends IService<Member> {
     void logout();
 
     String wxLogin(String code);
+
+    boolean checkPaymentPassword(Integer id, Integer paymentPassword);
+
+    boolean deductBalance(Integer memberId, BigDecimal amount);
 }

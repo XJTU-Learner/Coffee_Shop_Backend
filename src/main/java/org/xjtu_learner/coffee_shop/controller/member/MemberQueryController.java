@@ -22,12 +22,10 @@ public class MemberQueryController {
 
     private final IShopService shopService;
     private final IShopGoodsRelationService shopGoodsRelationService;
-    private final ICouponsMemberRelationService couponsMemberRelationService;
 
-    public MemberQueryController(IShopService shopService, IShopGoodsRelationService shopGoodsRelationService, ICouponsMemberRelationService couponsMemberRelationService) {
+    public MemberQueryController(IShopService shopService, IShopGoodsRelationService shopGoodsRelationService) {
         this.shopService = shopService;
         this.shopGoodsRelationService = shopGoodsRelationService;
-        this.couponsMemberRelationService = couponsMemberRelationService;
     }
 
     @GetMapping("/nearbyShops")
@@ -52,15 +50,5 @@ public class MemberQueryController {
         List<ShopGoodsDTO> shopGoodsDTOList = shopGoodsRelationService.getShopGoodsDTOList(relationList);
 
         return ApiResponse.success(shopGoodsDTOList);
-    }
-
-    @GetMapping("/coupons")
-    public ApiResponse<List<CouponsMemberDTO>> getCouponsMemberList() {
-        Integer memberId = MemberContext.get().getId();
-
-        List<CouponsMemberRelation> relationList =  couponsMemberRelationService.getCouponsMemberRelationList(memberId);
-        List<CouponsMemberDTO> couponsMemberDTOList =  couponsMemberRelationService.getCouponsMemberDTOList(relationList);
-
-        return ApiResponse.success(couponsMemberDTOList);
     }
 }

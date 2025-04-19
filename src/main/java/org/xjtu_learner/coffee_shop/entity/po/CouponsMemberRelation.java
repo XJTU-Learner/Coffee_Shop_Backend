@@ -68,11 +68,6 @@ public class CouponsMemberRelation implements Serializable {
     @TableField("is_expired")
     private Boolean isExpired;
 
-    /**
-     * 是否有效，0-否，1-是
-     */
-    @TableField("is_valid")
-    private Boolean isValid;
 
     /**
      * 创建时间

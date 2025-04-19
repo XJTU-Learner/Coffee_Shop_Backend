@@ -4,15 +4,17 @@ import com.baomidou.mybatisplus.annotation.EnumValue;
 import lombok.Getter;
 
 @Getter
-public enum PayMode {
+public enum PaymentMode {
     
-    Balance(0),//平台余额支付
-    WeChat(1); //微信支付
+    BALANCE(0, "平台余额支付"),
+    WECHAT(1, "微信支付");
 
     @EnumValue
     private final int value;
+    private final String type;
 
-    PayMode(int i) {
+    PaymentMode(int i, String type) {
         this.value = i;
+        this.type = type;
     }
 }

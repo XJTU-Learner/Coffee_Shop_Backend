@@ -8,7 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.xjtu_learner.coffee_shop.common.enums.OrderStatus;
-import org.xjtu_learner.coffee_shop.common.enums.PayMode;
+import org.xjtu_learner.coffee_shop.common.enums.PaymentMode;
 import org.xjtu_learner.coffee_shop.common.enums.PaymentStatus;
 
 import java.io.Serializable;
@@ -57,8 +57,14 @@ public class GoodsOrder implements Serializable {
     /**
      * 商品总金额
      */
-    @TableField("goods_total_price")
-    private BigDecimal goodsTotalPrice;
+    @TableField("goods_total_base_amount")
+    private BigDecimal goodsTotalBaseAmount;
+
+    /**
+     * 商品总金额
+     */
+    @TableField("goods_total_actual_amount")
+    private BigDecimal goodsTotalActualAmount;
 
     /**
      * 优惠卷用户关系id
@@ -67,10 +73,10 @@ public class GoodsOrder implements Serializable {
     private Integer couponsMemberRelationId;
 
     /**
-     * 优惠券折扣金额/优惠券满减金额
+     * 优惠券满减金额
      */
-    @TableField("coupon_discount_price")
-    private BigDecimal couponDiscountPrice;
+    @TableField("coupon_reduced_amount")
+    private BigDecimal couponReducedAmount;
 
     /**
      * 实付款
@@ -124,7 +130,7 @@ public class GoodsOrder implements Serializable {
      * 支付方式 1=平台余额 2=微信支付
      */
     @TableField("payment_mode")
-    private PayMode paymentMode;
+    private PaymentMode paymentMode;
 
     /**
      * 支付截止时间(五分钟内未付款的订单会被自动关闭)
@@ -156,29 +162,6 @@ public class GoodsOrder implements Serializable {
     @TableField("order_completion_time")
     private LocalDateTime orderCompletionTime;
 
-    /**
-     * 是否退款 0=否 1=是
-     */
-    @TableField("is_refund")
-    private Boolean isRefund;
-
-    /**
-     * 审核状态 1=平台处理中 2=退款成功 3=审核不通过
-     */
-    @TableField("audit_status")
-    private Integer auditStatus;
-
-    /**
-     * 审核不通过原因
-     */
-    @TableField("audit_reason")
-    private String auditReason;
-
-    /**
-     * 审核时间
-     */
-    @TableField("audit_time")
-    private LocalDateTime auditTime;
 
     /**
      * 是否删除 0=正常 1=删除

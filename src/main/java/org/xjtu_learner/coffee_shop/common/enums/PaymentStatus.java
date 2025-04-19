@@ -6,15 +6,16 @@ import lombok.Getter;
 
 @Getter
 public enum PaymentStatus {
-    WaitPay(0), //等待支付
-    Success(1), //支付成功
-    Fail(2),//支付失败
-    OverTime(3)//支付超时
-    ;
+    UNPAID(0, "未支付"),
+    PAID(1, "已支付"),
+    CANCEL(2, "已取消"),
+    TIMED_OUT(3, "超时取消");
     @EnumValue
     private final int value;
+    private final String type;
 
-    PaymentStatus(int i) {
+    PaymentStatus(int i, String type) {
         this.value = i;
+        this.type = type;
     }
 }

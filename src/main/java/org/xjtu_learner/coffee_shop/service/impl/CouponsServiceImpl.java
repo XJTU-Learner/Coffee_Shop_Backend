@@ -6,7 +6,6 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.PostConstruct;
 import org.redisson.api.RBloomFilter;
-import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.xjtu_learner.coffee_shop.common.enums.PreferentialType;
@@ -83,7 +82,7 @@ public class CouponsServiceImpl extends ServiceImpl<CouponsMapper, Coupons> impl
 
         // 缓存预热
         List<Coupons> toCaChe = lambdaQuery()
-                .eq(Coupons::getIsDeleted,false)
+                .eq(Coupons::getIsDeleted, false)
                 .list();
 
         Map<String, String> toCaCheString = toCaChe.stream()
@@ -94,6 +93,32 @@ public class CouponsServiceImpl extends ServiceImpl<CouponsMapper, Coupons> impl
         // MSET批量插入
         stringRedisTemplate.opsForValue().multiSet(toCaCheString);
 
+    }
+
+    @Override
+    public Coupons getCoupons(Integer couponsId) {
+        if (!checkGoodsIdValid(couponsId)) {
+            throw new CommonException("有不存在的couponsId", NOT_EXIST);
+        }
+
+        String key = CACHE_COUPONS_PREFIX + couponsId;
+
+        String json = stringRedisTemplate.opsForValue().get(key);
+        // 缓存命中
+        if (StrUtil.isNotBlank(json)) {
+            return JSONUtil.toBean(json, Coupons.class);
+        }
+        // 缓存未命中
+        Coupons toCache = lambdaQuery()
+                .eq(Coupons::getId, couponsId)
+                .eq(Coupons::getIsDeleted, false)
+                .one();
+
+        if (toCache == null) {
+            throw new CommonException("该优惠券不存在或已下架", NOT_EXIST);
+        }
+        stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(toCache));
+        return toCache;
     }
 
     @Override
@@ -127,7 +152,7 @@ public class CouponsServiceImpl extends ServiceImpl<CouponsMapper, Coupons> impl
             // 批量从数据库查询未命中的商品信息列表
             notHitGoods = lambdaQuery()
                     .in(Coupons::getId, notHitIdList)
-                    .eq(Coupons::getIsDeleted,false)  // 如果已被删除的优惠券将不会被加入缓存
+                    .eq(Coupons::getIsDeleted, false)  // 如果已被删除的优惠券将不会被加入缓存
                     .list()
                     .stream()
                     .collect(Collectors.toMap(Coupons::getId, po -> po));
@@ -196,7 +221,7 @@ public class CouponsServiceImpl extends ServiceImpl<CouponsMapper, Coupons> impl
             throw new CommonException("未指定优惠券来源", INVALID_ARGUMENT);
         }
         coupons.setSource(form.getSource());
-        coupons.setDiscountAmount(form.getDiscountAmount());
+        coupons.setDiscount(form.getDiscountAmount());
     }
 
     private static void checkAndSet(CouponsForm form, Coupons coupons) {
@@ -205,13 +230,13 @@ public class CouponsServiceImpl extends ServiceImpl<CouponsMapper, Coupons> impl
             if (form.getPreferentialType() == PreferentialType.DISCOUNT) {
                 if (form.getDiscountAmount() == null)
                     throw new CommonException("优惠类型为'折扣'但discountAmount参数为空", INVALID_ARGUMENT);
-                coupons.setDiscountAmount(form.getDiscountAmount());
+                coupons.setDiscount(form.getDiscountAmount());
             }
             if (form.getPreferentialType() == PreferentialType.REDUCTION) {
                 if (form.getLimitedPrice() == null || form.getReducedPrice() == null)
                     throw new CommonException("优惠类型为'满减'但limitedPrice或reducedPrice参数为空", INVALID_ARGUMENT);
-                coupons.setLimitedPrice(form.getLimitedPrice());
-                coupons.setReducedPrice(form.getReducedPrice());
+                coupons.setLimitedAmount(form.getLimitedPrice());
+                coupons.setReducedAmount(form.getReducedPrice());
             }
         }
 
@@ -282,6 +307,11 @@ public class CouponsServiceImpl extends ServiceImpl<CouponsMapper, Coupons> impl
         if (!success) {
             throw new CommonException("删除失败，可能原因：该优惠券已经删除或不存在", UPDATE_FAILED);
         }
+    }
+
+    @Override
+    public boolean checkGoodsIdValid(Integer couponsId) {
+        return bloomFilter.contains(String.valueOf(couponsId));
     }
 
     @Override
