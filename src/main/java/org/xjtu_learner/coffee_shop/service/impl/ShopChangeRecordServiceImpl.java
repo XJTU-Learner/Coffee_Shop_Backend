@@ -8,6 +8,9 @@ import org.xjtu_learner.coffee_shop.common.auth.context.MerchantContext;
 import org.xjtu_learner.coffee_shop.common.enums.AuditStatus;
 import org.xjtu_learner.coffee_shop.common.exception.CommonException;
 import org.xjtu_learner.coffee_shop.entity.dto.*;
+import org.xjtu_learner.coffee_shop.entity.form.AuditChangeForm;
+import org.xjtu_learner.coffee_shop.entity.form.PageQuery;
+import org.xjtu_learner.coffee_shop.entity.form.ShopChangeForm;
 import org.xjtu_learner.coffee_shop.entity.po.MerchantChangeRecord;
 import org.xjtu_learner.coffee_shop.entity.po.Shop;
 import org.xjtu_learner.coffee_shop.entity.po.ShopChangeRecord;
@@ -57,19 +60,18 @@ public class ShopChangeRecordServiceImpl extends ServiceImpl<ShopChangeRecordMap
         // 判断是否有正在进行的审核
         boolean exists = lambdaQuery()
                 .eq(ShopChangeRecord::getMerchantId, id)
+                .eq(ShopChangeRecord::getAuditStatus,AuditStatus.ONGOING)
                 .exists();
         if (exists) {
             throw new CommonException("已有正在进行的审核", AUDIT_ONGOING);
         }
 
-        Shop shop = shopService.lambdaQuery().eq(Shop::getId, MerchantContext.get().getShopId()).one();
+        Shop shop = shopService.lambdaQuery().eq(Shop::getId, id).one();
 
         ShopChangeRecord record = BeanUtil.copyProperties(formDTO, ShopChangeRecord.class);
         BeanUtil.copyProperties(shop, record, "id");
 
         record.setMerchantId(id);
-        record.setNickname(MerchantContext.get().getNickname());
-        record.setShopId(shop.getId());
         save(record);
     }
 
@@ -85,20 +87,28 @@ public class ShopChangeRecordServiceImpl extends ServiceImpl<ShopChangeRecordMap
     @Override
     public void auditChangeShop(AuditChangeForm form) {
         // 检查该记录是否正在审核中
-        ShopChangeRecord record = lambdaQuery().eq(ShopChangeRecord::getId, form.getId()).one();
+        ShopChangeRecord record = lambdaQuery()
+                .eq(ShopChangeRecord::getId, form.getId())
+                .eq(ShopChangeRecord::getAuditStatus,AuditStatus.ONGOING)
+                .one();
         if (record == null) throw new CommonException("变更申请记录不存在", NOT_EXIST);
         if (record.getAuditStatus() != AuditStatus.ONGOING)
             throw new CommonException("变更申请记录不在进行中", AUDIT_NOT_ONGOING);
 
-        lambdaUpdate()
+        boolean success = lambdaUpdate()
                 .set(ShopChangeRecord::getAuditor, AdminContext.get().getId())
                 .set(form.getSuccess(), ShopChangeRecord::getAuditStatus, AuditStatus.SUCCEED)
                 .set(!form.getSuccess(), ShopChangeRecord::getAuditStatus, AuditStatus.FAILED)
-                .set(ShopChangeRecord::getAuditReason, form.getAuditReason())
+                .set(!form.getSuccess(), ShopChangeRecord::getAuditReason, form.getAuditReason())
                 .set(ShopChangeRecord::getAuditTime, LocalDateTime.now())
                 .set(ShopChangeRecord::getUpdateAt, LocalDateTime.now())
                 .eq(ShopChangeRecord::getId, form.getId())
                 .update();
+
+        // 如果审批通过则修改门店信息
+        if (success && form.getSuccess()) {
+            shopService.updateShop(record);
+        }
     }
 
     private boolean checkInitForm(ShopChangeForm shopChangeForm) {
@@ -112,8 +122,8 @@ public class ShopChangeRecordServiceImpl extends ServiceImpl<ShopChangeRecordMap
         if (StrUtil.isBlank(shopChangeForm.getNewContactRealname())) return false;
         if (StrUtil.isBlank(shopChangeForm.getNewContactPhone())) return false;
         if (StrUtil.isBlank(shopChangeForm.getNewBusinessLicense())) return false;
-        if (StrUtil.isBlank(shopChangeForm.getNewOpenTime())) return false;
-        if (StrUtil.isBlank(shopChangeForm.getNewCloseTime())) return false;
+        if (shopChangeForm.getNewOpenTime() == null) return false;
+        if (shopChangeForm.getNewCloseTime() == null) return false;
         if (shopChangeForm.getNewLongitude() == null) return false;
         if (shopChangeForm.getNewLatitude() == null) return false;
 

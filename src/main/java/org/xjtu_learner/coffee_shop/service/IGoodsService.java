@@ -1,10 +1,12 @@
 package org.xjtu_learner.coffee_shop.service;
 
-import org.xjtu_learner.coffee_shop.entity.dto.GoodsForm;
+import org.xjtu_learner.coffee_shop.entity.form.GoodsForm;
 import org.xjtu_learner.coffee_shop.entity.dto.PageDTO;
-import org.xjtu_learner.coffee_shop.entity.dto.PageQuery;
+import org.xjtu_learner.coffee_shop.entity.form.PageQuery;
 import org.xjtu_learner.coffee_shop.entity.po.Goods;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import java.util.List;
 
 /**
  * <p>
@@ -16,7 +18,9 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IGoodsService extends IService<Goods> {
 
-    PageDTO<Goods> getGoodsList(PageQuery pageQuery);
+    List<Goods> getGoodsList(List<Integer> idList);
+
+    PageDTO<Goods> getGoodsPage(PageQuery pageQuery);
 
     void createGoods(GoodsForm form);
 
@@ -25,4 +29,8 @@ public interface IGoodsService extends IService<Goods> {
     void deleteGoods(Integer id);
 
     PageDTO<Goods> getNewGoodsList(PageQuery pageQuery);
+
+    boolean checkGoodsIdValid(Integer goodsId);
+
+    boolean checkGoodsIdValidBatch(List<Integer> goodsIdList);
 }

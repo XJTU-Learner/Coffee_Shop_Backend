@@ -1,7 +1,11 @@
 package org.xjtu_learner.coffee_shop.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Param;
+import org.xjtu_learner.coffee_shop.entity.dto.ShopGoodsDTO;
 import org.xjtu_learner.coffee_shop.entity.po.ShopGoodsRelation;
+
+import java.util.List;
 
 /**
  * <p>

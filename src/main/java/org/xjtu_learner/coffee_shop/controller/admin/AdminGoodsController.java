@@ -2,6 +2,8 @@ package org.xjtu_learner.coffee_shop.controller.admin;
 
 import org.springframework.web.bind.annotation.*;
 import org.xjtu_learner.coffee_shop.entity.dto.*;
+import org.xjtu_learner.coffee_shop.entity.form.GoodsForm;
+import org.xjtu_learner.coffee_shop.entity.form.PageQuery;
 import org.xjtu_learner.coffee_shop.entity.po.Goods;
 import org.xjtu_learner.coffee_shop.service.IGoodsService;
 
@@ -16,8 +18,8 @@ public class AdminGoodsController {
     }
 
     @GetMapping
-    public ApiResponse<PageDTO<Goods>> getGoodsList(PageQuery pageQuery){
-        PageDTO<Goods> goodsList = goodsService.getGoodsList(pageQuery);
+    public ApiResponse<PageDTO<Goods>> getGoodsPage(PageQuery pageQuery){
+        PageDTO<Goods> goodsList = goodsService.getGoodsPage(pageQuery);
         return ApiResponse.success(goodsList);
     }
 

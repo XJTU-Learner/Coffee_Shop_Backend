@@ -1,16 +1,17 @@
 package org.xjtu_learner.coffee_shop.controller.merchant;
 
 
+import cn.hutool.core.bean.BeanUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.xjtu_learner.coffee_shop.common.auth.context.MerchantContext;
 import org.xjtu_learner.coffee_shop.entity.dto.*;
+import org.xjtu_learner.coffee_shop.entity.form.PageQuery;
+import org.xjtu_learner.coffee_shop.entity.form.RestockForm;
 import org.xjtu_learner.coffee_shop.entity.po.Goods;
+import org.xjtu_learner.coffee_shop.entity.po.ShopGoodsRelation;
+import org.xjtu_learner.coffee_shop.service.IMerchantRestockRecordService;
 import org.xjtu_learner.coffee_shop.service.impl.GoodsServiceImpl;
-import org.xjtu_learner.coffee_shop.service.impl.MerchantRestockServiceImpl;
 import org.xjtu_learner.coffee_shop.service.impl.ShopGoodsRelationServiceImpl;
 
 import java.util.List;
@@ -19,91 +20,103 @@ import java.util.List;
 @RequestMapping("/merchant/goods")
 public class MerchantGoodsController {
 
-    private  final ShopGoodsRelationServiceImpl  shopGoodsRelationService;
-    private  final MerchantRestockServiceImpl  merchantRestockService;
+    private final ShopGoodsRelationServiceImpl shopGoodsRelationService;
+    private final IMerchantRestockRecordService merchantRestockRecordService;
 
-    private  final GoodsServiceImpl goodsService;
+    private final GoodsServiceImpl goodsService;
 
 
     @Autowired
-    public MerchantGoodsController(ShopGoodsRelationServiceImpl shopGoodsRelationService, MerchantRestockServiceImpl merchantRestockService, GoodsServiceImpl goodsService) {
+    public MerchantGoodsController(ShopGoodsRelationServiceImpl shopGoodsRelationService, IMerchantRestockRecordService merchantRestockRecordService, GoodsServiceImpl goodsService) {
         this.shopGoodsRelationService = shopGoodsRelationService;
-        this.merchantRestockService = merchantRestockService;
+        this.merchantRestockRecordService = merchantRestockRecordService;
         this.goodsService = goodsService;
     }
 
 
-    @RequestMapping("/list")
-    // 定义一个list方法，用于返回商品列表
-    public ApiResponse<List<GoodsDTO>> list(){
-        // 获取当前商户的id
-        int shopid=MerchantContext.get().getShopId();
-        List<GoodsDTO> goodsList = shopGoodsRelationService.getAllGoods(shopid);
-        // 返回商品列表
-        return ApiResponse.success(goodsList);
+    @GetMapping
+    public ApiResponse<PageDTO<ShopGoodsDTO>> getShopGoodsPage(PageQuery pageQuery) {
+
+        int shopId = MerchantContext.get().getId();
+        PageDTO<ShopGoodsRelation> goodsList = shopGoodsRelationService.getShopGoodsRelationPage(shopId, pageQuery);
+        List<ShopGoodsDTO> shopGoodsDTOList = shopGoodsRelationService.getShopGoodsDTOList(goodsList.getList());
+
+        PageDTO<ShopGoodsDTO> pageDTO = PageDTO.<ShopGoodsDTO>builder()
+                .total(goodsList.getTotal())
+                .pages(goodsList.getPages())
+                .list(shopGoodsDTOList)
+                .build();
+
+        return ApiResponse.success(pageDTO);
     }
 
 
-    @RequestMapping("/soldoutlist")
-    // 定义一个list方法，用于返回售空;
-    public ApiResponse<List<GoodsDTO>> soldoutlist(){
+    @GetMapping("/soldOut")
+    public ApiResponse<List<ShopGoodsDTO>> getSoldOutPage() {
 
-        // 获取当前商户的id
-        int shopid=MerchantContext.get().getShopId();
-        List<GoodsDTO> goodsList = shopGoodsRelationService.getSoldOutList(shopid);
-        return ApiResponse.success(goodsList);
+        int shopId = MerchantContext.get().getId();
+        List<ShopGoodsRelation> goodsList = shopGoodsRelationService.getSoldOutList(shopId);
+        List<ShopGoodsDTO> shopGoodsDTOList = shopGoodsRelationService.getShopGoodsDTOList(goodsList);
+
+        return ApiResponse.success(shopGoodsDTOList);
     }
 
-    @RequestMapping("/restock")
-    // 商家勾选缺货商品进货
 
-    public ApiResponse<String> restock(@RequestBody ReplenishmentForm replenishmentForm){
-        merchantRestockService.sumbitRestock(replenishmentForm);
+    @PostMapping("/restock")
+    public ApiResponse<String> submitRestock(@RequestBody RestockForm restockForm) {
+        merchantRestockRecordService.submitRestock(restockForm);
         return ApiResponse.success("补货申请已成功提交！");
     }
 
-    @RequestMapping("/updatestatus")
-
-    //商家更新商品状态
-
-    public ApiResponse<String> updatestatus(@RequestBody ReplenishmentForm replenishmentForm){
-        merchantRestockService.updateStatus(replenishmentForm);
+    @PutMapping("/isSoldOut")
+    public ApiResponse<String> updateIsSoldOut(@RequestParam("id") Integer id,@RequestParam("isSoldOut") Boolean isSoldOut) {
+        shopGoodsRelationService.updateIsSoldOut(id, isSoldOut);
         return ApiResponse.success("商品状态更新成功！");
 
     }
 
 
-    @RequestMapping("/allgoodslists")
+    @GetMapping("/all")
+    public ApiResponse<PageDTO<GoodsDTO>> getAllGoods(PageQuery pageQuery) {
 
-    //商家获取现在总司端发售的所有商品
+        PageDTO<Goods> goodsPage = goodsService.getGoodsPage(pageQuery);
+        List<Goods> goodsList = goodsPage.getList();
+        List<GoodsDTO> goodsDTOList = goodsList.stream()
+                .map((po) -> (BeanUtil.copyProperties(po, GoodsDTO.class)))
+                .toList();
 
-    public  ApiResponse<PageDTO<Goods>> getAllgGoodsList (@RequestBody PageQuery pageQuery){
+        PageDTO<GoodsDTO> page = PageDTO.<GoodsDTO>builder()
+                .total(goodsPage.getTotal())
+                .pages(goodsPage.getPages())
+                .list(goodsDTOList)
+                .build();
 
-        return ApiResponse.success(goodsService.getGoodsList(pageQuery));
+        return ApiResponse.success(page);
     }
 
 
-    @RequestMapping("/newgoodslists")
+    @GetMapping("/new")
+    public ApiResponse<PageDTO<GoodsDTO>> getNewGoodsPage(PageQuery pageQuery) {
+        PageDTO<Goods> newGoodsPage = goodsService.getNewGoodsList(pageQuery);
+        List<Goods> goodsList = newGoodsPage.getList();
+        List<GoodsDTO> goodsDTOList = goodsList.stream()
+                .map((po) -> (BeanUtil.copyProperties(po, GoodsDTO.class)))
+                .toList();
 
-    //商家获取发售的新品的所有商品
+        PageDTO<GoodsDTO> page = PageDTO.<GoodsDTO>builder()
+                .total(newGoodsPage.getTotal())
+                .pages(newGoodsPage.getPages())
+                .list(goodsDTOList)
+                .build();
 
-    public  ApiResponse<PageDTO<Goods>> getNewgGoodsList (@RequestBody PageQuery pageQuery){
-
-        return ApiResponse.success(goodsService.getNewGoodsList(pageQuery));
+        return ApiResponse.success(page);
     }
 
 
-    @RequestMapping("/addnewgoods")
-
-    //商家添加商品
-
-    public  ApiResponse<String> AddNewGoodsList(@RequestParam int goodId) {
-        Goods goods = shopGoodsRelationService.addNewGoods(goodId);
+    @PostMapping("/add")
+    public ApiResponse<String> AddNewGoodsList(@RequestBody List<Integer> goodIdList) {
+        shopGoodsRelationService.addGoods(goodIdList);
         return ApiResponse.success("添加成功!");
 
     }
-
-
-
-
 }

@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.xjtu_learner.coffee_shop.entity.dto.ApiResponse;
 import org.xjtu_learner.coffee_shop.entity.dto.MemberBillDTO;
-import org.xjtu_learner.coffee_shop.entity.dto.WithdrawalForm;
+import org.xjtu_learner.coffee_shop.entity.form.WithdrawalForm;
 import org.xjtu_learner.coffee_shop.entity.po.MerchantWithdrawRecord;
 import org.xjtu_learner.coffee_shop.service.impl.MerchantBillingRecordServiceImpl;
 import org.xjtu_learner.coffee_shop.service.impl.MerchantWithdrawRecordServiceImpl;

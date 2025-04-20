@@ -8,10 +8,11 @@ import org.xjtu_learner.coffee_shop.common.auth.VerificationCodeManager;
 import org.xjtu_learner.coffee_shop.common.auth.session.impl.MerchantSessionManager;
 import org.xjtu_learner.coffee_shop.common.exception.CommonException;
 import org.xjtu_learner.coffee_shop.common.utils.HttpContext;
-import org.xjtu_learner.coffee_shop.entity.dto.LoginForm;
-import org.xjtu_learner.coffee_shop.entity.dto.SignupForm;
+import org.xjtu_learner.coffee_shop.entity.form.LoginForm;
+import org.xjtu_learner.coffee_shop.entity.form.SignupForm;
 import org.xjtu_learner.coffee_shop.entity.po.Merchant;
 import org.xjtu_learner.coffee_shop.dao.MerchantMapper;
+import org.xjtu_learner.coffee_shop.entity.po.MerchantChangeRecord;
 import org.xjtu_learner.coffee_shop.entity.po.Shop;
 import org.xjtu_learner.coffee_shop.service.IMerchantService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.xjtu_learner.coffee_shop.service.IShopService;
 
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.time.LocalDateTime;
 
 import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant.*;
 import static org.xjtu_learner.coffee_shop.common.constant.RedisConstant.MERCHANT_SESSION_CODE_PREFIX;
@@ -112,10 +114,6 @@ public class MerchantServiceImpl extends ServiceImpl<MerchantMapper, Merchant> i
         // 将密码加密后存入
         merchant.setPassword(passwordEncoder.encode(signupForm.getPassword()));
         merchant.setNickname("临时商户" + RandomUtil.randomString(6));
-        // 为该商户绑定门店
-        Shop shop = new Shop();
-        shopService.save(shop);
-        merchant.setShopId(shop.getId());
 
         try {
             save(merchant);
@@ -127,7 +125,32 @@ public class MerchantServiceImpl extends ServiceImpl<MerchantMapper, Merchant> i
             throw new RuntimeException(ex.getMessage());
         }
 
+        // 为该商户绑定门店
+        Shop shop = new Shop();
+        shop.setId(merchant.getId());
+        shopService.save(shop);
     }
 
+    @Override
+    public void updateMerchant(MerchantChangeRecord record) {
 
+        boolean success = lambdaUpdate()
+                .set(record.getNewMobile() != null, Merchant::getMobile, record.getNewMobile())
+                .set(record.getNewNickname() != null, Merchant::getNickname, record.getNewNickname())
+                .set(record.getNewCertificateType() != null, Merchant::getCertificateType, record.getNewCertificateType())
+                .set(record.getNewCertificateImg() != null, Merchant::getCertificateImg, record.getNewCertificateImg())
+                .set(record.getNewRealName() != null, Merchant::getRealName, record.getNewRealName())
+                .set(record.getNewIdCard() != null, Merchant::getIdCard, record.getNewIdCard())
+                .set(record.getNewOpeningBank() != null, Merchant::getOpeningBank, record.getNewOpeningBank())
+                .set(record.getBankCard() != null, Merchant::getBankCard, record.getNewBankCard())
+                .set(record.getNewWechatAccount() != null, Merchant::getWechatAccount, record.getNewWechatAccount())
+                .set(record.getNewAlipayAccount() != null, Merchant::getAlipayAccount, record.getNewAlipayAccount())
+                .set(Merchant::getUpdateAt, LocalDateTime.now())
+                .eq(Merchant::getId, record.getMerchantId())
+                .update();
+
+        if (!success) {
+            throw new CommonException("更新商户信息异常", TO_BE_SUPPLEMENTED);
+        }
+    }
 }

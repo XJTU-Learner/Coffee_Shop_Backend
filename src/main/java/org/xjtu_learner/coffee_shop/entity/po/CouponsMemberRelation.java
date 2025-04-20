@@ -45,12 +45,6 @@ public class CouponsMemberRelation implements Serializable {
     private Integer couponsId;
 
     /**
-     * 优惠卷名称
-     */
-    @TableField("coupons_name")
-    private String couponsName;
-
-    /**
      * 生效时间
      */
     @TableField("start_time")
@@ -74,11 +68,6 @@ public class CouponsMemberRelation implements Serializable {
     @TableField("is_expired")
     private Boolean isExpired;
 
-    /**
-     * 是否有效，0-否，1-是
-     */
-    @TableField("is_valid")
-    private Boolean isValid;
 
     /**
      * 创建时间

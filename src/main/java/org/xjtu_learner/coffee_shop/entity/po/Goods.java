@@ -82,11 +82,6 @@ public class Goods implements Serializable {
     @TableField("is_new")
     private Boolean isNew;
 
-    /**
-     * 出售状态 0=已上架 1=已下架
-     */
-    @TableField("for_sale")
-    private Boolean forSale;
 
     /**
      * 下单选项
@@ -105,6 +100,14 @@ public class Goods implements Serializable {
      */
     @TableField("total_sales")
     private Integer totalSales;
+
+
+    /**
+     * 是否已下架 0=否 1=是
+     */
+    @TableField("is_deleted")
+    private Boolean isDeleted;
+
 
     /**
      * 创建时间

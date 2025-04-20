@@ -1,32 +1,35 @@
 package org.xjtu_learner.coffee_shop.service.impl;
 
-
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.xjtu_learner.coffee_shop.common.auth.context.MemberContext;
+import org.xjtu_learner.coffee_shop.common.constant.MqConstant;
 import org.xjtu_learner.coffee_shop.common.enums.OrderStatus;
 import org.xjtu_learner.coffee_shop.common.enums.PaymentStatus;
 import org.xjtu_learner.coffee_shop.common.enums.PreferentialType;
 import org.xjtu_learner.coffee_shop.common.exception.CommonException;
-import org.xjtu_learner.coffee_shop.entity.dto.GoodsOrderForm;
-import org.xjtu_learner.coffee_shop.entity.dto.MemberOrderForm;
-import org.xjtu_learner.coffee_shop.entity.dto.PayOrderForm;
+import org.xjtu_learner.coffee_shop.common.mq.MultiDelayMessage;
+import org.xjtu_learner.coffee_shop.common.mq.processor.DelayMessageProcessor;
+import org.xjtu_learner.coffee_shop.entity.form.GoodsOrderDetailForm;
+import org.xjtu_learner.coffee_shop.entity.form.GoodsOrderForm;
 import org.xjtu_learner.coffee_shop.entity.po.*;
 import org.xjtu_learner.coffee_shop.dao.GoodsOrderMapper;
-import org.xjtu_learner.coffee_shop.service.IGoodsOrderService;
+import org.xjtu_learner.coffee_shop.service.*;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
-import org.springframework.amqp.rabbit.connection.CorrelationData;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import org.slf4j.Logger;
-import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant.NOT_EXIST;
-import static org.xjtu_learner.coffee_shop.common.constant.OrderMq.*;
-import static org.xjtu_learner.coffee_shop.common.constant.PayMq.*;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant.*;
+import static org.xjtu_learner.coffee_shop.common.constant.RuleConstant.*;
 
 /**
  * <p>
@@ -36,242 +39,255 @@ import static org.xjtu_learner.coffee_shop.common.constant.PayMq.*;
  * @author xuezhihengg
  * @since 2025-04-03
  */
+@Slf4j
 @Service
 public class GoodsOrderServiceImpl extends ServiceImpl<GoodsOrderMapper, GoodsOrder> implements IGoodsOrderService {
 
-    private static final Logger logger = LoggerFactory.getLogger(GoodsOrderServiceImpl.class);
-    private static final int MAX_RETRY_ATTEMPTS = 3;
-    private  final  GoodsServiceImpl goodsService;
-    private  final  GoodsOrderDetailServiceImpl goodsOrderDetailService;
-    private  final  CouponsServiceImpl couponsService;
-    private  final  CouponsMemberRelationServiceImpl couponsMemberRelationService ;
-    private  final CallMeBotService callMeBotService;
+
+    private final IGoodsService goodsService;
     private final MemberServiceImpl memberService;
+    private final CallMeBotService callMeBotService;
+    private final ICouponsService couponsService;
+    private final IGoodsOrderDetailService goodsOrderDetailService;
+    private final ICouponsMemberRelationService couponsMemberRelationService;
+    private final ICouponsGoodsRelationService couponsGoodsRelationService;
+    private final ICouponsShopRelationService couponsShopRelationService;
 
     private final RabbitTemplate rabbitTemplate;
 
     private final TransactionTemplate transactionTemplate;
 
-    public GoodsOrderServiceImpl(GoodsServiceImpl goodsService, GoodsOrderDetailServiceImpl goodsOrderDetailService, CouponsServiceImpl couponsService, CouponsMemberRelationServiceImpl couponsMemberRelationService, CallMeBotService callMeBotService, MemberServiceImpl memberService, RabbitTemplate rabbitTemplate, TransactionTemplate transactionTemplate) {
+    public GoodsOrderServiceImpl(GoodsServiceImpl goodsService, GoodsOrderDetailServiceImpl goodsOrderDetailService, CouponsServiceImpl couponsService, CouponsMemberRelationServiceImpl couponsMemberRelationService, CallMeBotService callMeBotService, MemberServiceImpl memberService, ICouponsShopRelationService couponsShopRelationService, RabbitTemplate rabbitTemplate, TransactionTemplate transactionTemplate, CallMeBotService callMeBotService1, MemberServiceImpl memberService1, ICouponsGoodsRelationService couponsGoodsRelationService, TransactionTemplate transactionTemplate1) {
         this.goodsService = goodsService;
         this.goodsOrderDetailService = goodsOrderDetailService;
         this.couponsService = couponsService;
         this.couponsMemberRelationService = couponsMemberRelationService;
-        this.callMeBotService = callMeBotService;
-        this.memberService = memberService;
+        this.couponsShopRelationService = couponsShopRelationService;
         this.rabbitTemplate = rabbitTemplate;
-        this.transactionTemplate = transactionTemplate;
+        this.callMeBotService = callMeBotService1;
+        this.memberService = memberService1;
+        this.couponsGoodsRelationService = couponsGoodsRelationService;
+        this.transactionTemplate = transactionTemplate1;
     }
 
-
-    //创建订单
     @Override
-    public void createOrder(MemberOrderForm memberOrderForm) {
-        // 使用TransactionTemplate执行事务并返回订单对象
-        GoodsOrder goodsOrder = transactionTemplate.execute(status -> {
-            try {
-                GoodsOrder order = new GoodsOrder();
-                order.setMemberId(MemberContext.get().getId());
-                order.setMerchantId(memberOrderForm.getMerchant_id());
-                order.setCouponsMemberRelationId(memberOrderForm.getCoupons_member_relation_id());
-                order.setDescription(memberOrderForm.getDescription());
-                order.setRemark(memberOrderForm.getRemark());
-                order.setPaymentMode(memberOrderForm.getPayment_mode());
-
-                Double supposalPrice = 0.0;
-                Double actualPrice = 0.0;
-                Double performExtraFee = 0.0;
-                int count = 0;
-                List<GoodsOrderForm> goodsOrderFormList = memberOrderForm.getGoodsOrderFormList();
-                for (GoodsOrderForm goodsOrderForm : goodsOrderFormList) {
-                    supposalPrice += goodsOrderForm.getActual_price() * goodsOrderForm.getCount();
-                    count += goodsOrderForm.getCount();
-                    if (goodsOrderForm.getIs_used_coupons()) {
-                        double temp = goodsOrderForm.getActual_price() *
-                                getDiscountAmount(goodsOrderForm.getCoupons_id(), 0.0).toBigInteger().doubleValue();
-                        double temp2 = goodsOrderForm.getActual_price() * (goodsOrderForm.getCount() - 1);
-                        performExtraFee += (temp + temp2) *
-                                getPlatformExtractPrice(goodsOrderForm.getGoods_id()).toBigInteger().doubleValue();
-                        actualPrice += temp + temp2;
-                    } else {
-                        double temp = goodsOrderForm.getActual_price() * goodsOrderForm.getCount();
-                        actualPrice += temp;
-                        performExtraFee += temp *
-                                getPlatformExtractPrice(goodsOrderForm.getGoods_id()).toBigInteger().doubleValue();
-                    }
-                }
-                actualPrice -= getDiscountAmount(memberOrderForm.getCoupons_member_relation_id(), actualPrice)
-                        .toBigInteger().doubleValue();
-                order.setGoodsTotalPrice(new BigDecimal(supposalPrice));
-                order.setActualPrice(new BigDecimal(actualPrice));
-                order.setGoodsTotalQuantity(count);
-                order.setCouponDiscountPrice(new BigDecimal(supposalPrice - actualPrice));
-                order.setPointIncrease(BigDecimal.valueOf(actualPrice));
-                order.setPlatformExtractPrice(new BigDecimal(performExtraFee));
-                order.setMerchantIncome(new BigDecimal(actualPrice - performExtraFee));
-                order.setStatus(OrderStatus.WAIT_PAY);
-                order.setPaymentStatus(PaymentStatus.WaitPay);
-
-                save(order);
-                goodsOrderDetailService.creatOrderDetail(memberOrderForm, order.getId());
-
-                //订单成功创建通知
-                Member member =memberService.getById(MemberContext.get().getId());
-                String message="您的订单:"+order.getId()+order.getDescription()+"已经成功下单，请在两分钟支付！";
-                callMeBotService.sendMessage(member.getTelegram(),message);
-                return order;
-            } catch (Exception e) {
-                status.setRollbackOnly();
-                throw new RuntimeException("订单创建失败", e);
-            }
-        });
-
-        // 在事务之外使用返回的订单对象
-        if (goodsOrder != null) {
-           sendOrderMessage(goodsOrder);
-        }
-    }
-
-
-    //支付订单
-    @Override
-    public void payOrder(Member member,PayOrderForm payOrderForm) {
-
-        //执行扣费
-        member.setBalance(member.getBalance().subtract(new BigDecimal(payOrderForm.getActual_price())));
-        member.setTotalConsumeBalance(new BigDecimal(payOrderForm.getActual_price()));
-        member.setTotalConsumePoints(new BigDecimal(payOrderForm.getActual_price()));
-        member.setPoints(member.getPoints().add(new BigDecimal(payOrderForm.getActual_price())));
-        //加入消息队列执行异步消费
-       sendPayMessage(payOrderForm.getOrder_id());
-    }
-
-    /*
-    *
-    *
-    * 辅助函数
-    *
-    * */
-
-
-
-    //  将订单信息发送到消息队列
-    private void sendOrderMessage(GoodsOrder goodsOrder) {
-        int orderId = goodsOrder.getId();
-        CorrelationData correlationData = new CorrelationData(String.valueOf(orderId));
-        AtomicInteger retryCount = new AtomicInteger(0);
-
-        // 设置确认确认进入交换机回调
-        rabbitTemplate.setConfirmCallback((data, ack, cause) -> {
-            if (data == null) {
-                logger.error( "CorrelationData is null in confirm callback");
-                return;
-            }
-            String messageId = data.getId();
-            if (ack) {
-                logger.info("Message sent successfully for orderId: {}", messageId);
-            } else {
-                logger.error("Message send failed for orderId: {}, cause: {}", messageId, cause);
-                if (retryCount.getAndIncrement() < MAX_RETRY_ATTEMPTS) {
-                    logger.info("Retrying send for orderId: {}, attempt: {}", messageId, retryCount.get());
-                    rabbitTemplate.convertAndSend(ORDER_EXCHANGE, ORDER_ROUTING_KEY, orderId, data);
-                } else {
-                    logger.error("Max retry attempts reached for orderId: {}", messageId);
-                    // 可选：记录到数据库或死信队列
-                }
-            }
-        });
-
-        // 确认进入队列返回回调
-        rabbitTemplate.setReturnsCallback(returned -> {
-            String messageId = returned.getMessage().getMessageProperties().getCorrelationId();
-            logger.error("Message returned for orderId: {}, reason: {}, exchange: {}, routingKey: {}",
-                    messageId, returned.getReplyText(), returned.getExchange(), returned.getRoutingKey());
-        });
-        // 发送消息
-        logger.info("Attempting to send message for orderId: {}", orderId);
-        rabbitTemplate.convertAndSend(ORDER_EXCHANGE, ORDER_ROUTING_KEY, orderId, correlationData);
-    }
-
-    //将支付消息发送到消息队列
-
-    private void sendPayMessage(int orderId) {
-        CorrelationData correlationData = new CorrelationData(String.valueOf(orderId));
-        AtomicInteger retryCount =new AtomicInteger(0);
-        rabbitTemplate.setConfirmCallback((data, ack, cause) -> {
-            if (data == null) {
-                logger.error( "CorrelationData is null in confirm callback!");
-                return;
-            }
-            String messageId = data.getId();
-            if (ack) {
-                logger.info("Message sent successfully for payOrderId: {}", messageId);
-            } else {
-                logger.error("Message send failed for payOrderId: {}, cause: {}", messageId, cause);
-                if (retryCount.getAndIncrement() < MAX_RETRY_ATTEMPTS) {
-                    logger.info("Retrying send for payOrderId: {}, attempt: {}", messageId, retryCount.get());
-                    rabbitTemplate.convertAndSend(PAY_EXCHANGE, PAY_ROUTING_KEY, orderId, data);
-                } else {
-                    logger.error("Max retry attempts reached for payOrderId: {}", messageId);
-                }
-            }
-        });
-
-        // 确认进入队列返回回调
-        rabbitTemplate.setReturnsCallback(returned -> {
-            String messageId = returned.getMessage().getMessageProperties().getCorrelationId();
-            logger.error("Message returned for payOrderId: {}, reason: {}, exchange: {}, routingKey: {}",
-                    messageId, returned.getReplyText(), returned.getExchange(), returned.getRoutingKey());
-        });
-
-        rabbitTemplate.convertAndSend(PAY_EXCHANGE,PAY_ROUTING_KEY,orderId);
-
-    }
-
     @Transactional
-    public BigDecimal getDiscountAmount(int MembercouponsId,double actual)
-    {
-        CouponsMemberRelation couponsMemberRelation =couponsMemberRelationService.getById(MembercouponsId);
-        if(couponsMemberRelation==null)
-        {
-            return new BigDecimal(0);
+    public Integer createOrder(GoodsOrderForm goodsOrderForm) {
+
+        Integer memberId = MemberContext.get().getId();
+        Integer merchantId = goodsOrderForm.getMerchantId();
+
+        GoodsOrder goodsOrder = new GoodsOrder();
+        goodsOrder.setMemberId(memberId);
+        goodsOrder.setMerchantId(merchantId);
+        goodsOrder.setRemark(goodsOrderForm.getRemark());
+        goodsOrder.setPaymentMode(goodsOrderForm.getPaymentMode());
+
+
+        List<GoodsOrderDetailForm> details = goodsOrderForm.getDetail();
+
+        // 统计商品总数
+        int totalCount = details.size();
+        goodsOrder.setGoodsTotalQuantity(totalCount);
+
+        // 先通过缓存查得各商品详细信息
+        List<Goods> goodsList = goodsService.getGoodsList(details.stream().map(GoodsOrderDetailForm::getGoodsId).toList());
+
+        Map<Integer, Goods> goodsMap = goodsList.stream()
+                .collect(Collectors.toMap(
+                        Goods::getId,
+                        (goods) -> (goods)
+                ));
+
+        // 总基础金额
+        BigDecimal totalBaseAmount = BigDecimal.valueOf(0);
+        // 总实际金额
+        BigDecimal totalActualAmount = BigDecimal.valueOf(0);
+        // 平台抽成金额
+        BigDecimal platformExtractPrice = BigDecimal.valueOf(0);
+
+        List<GoodsOrderDetail> orderDetailList = new ArrayList<>();
+        for (GoodsOrderDetailForm detail : details) {
+            Goods goods = goodsMap.get(detail.getGoodsId());
+
+            GoodsOrderDetail orderDetail = new GoodsOrderDetail();
+            orderDetail.setGoodsId(goods.getId());
+            orderDetail.setInfo(detail.getInfo());
+
+            BigDecimal basePrice = goods.getBasePrice();
+            // 累加基础金额
+            totalBaseAmount = totalBaseAmount.add(basePrice);
+
+            // TODO: 这里不一定符合现实，在基础金额上计算（优惠券成本转嫁给商家）是最简单的实现，后期可以更改为更复杂更实际的实现
+            // 累加平台抽成（在基础金额上计算，与优惠券无关）
+            platformExtractPrice = platformExtractPrice.add(basePrice.multiply(goods.getPlatformExtractRatio()));
+
+            // 判断该商品是否使用优惠券
+            Integer couponsMemberRelationId = detail.getCouponsMemberRelationId();
+            if (couponsMemberRelationId != null) {
+                // 这里要进行一次mysql查询
+                Integer couponsId = couponsMemberRelationService.checkValid(memberId, couponsMemberRelationId);
+                Coupons coupons = couponsService.getCoupons(couponsId);
+
+                if (!(coupons.getPreferentialType() == PreferentialType.DISCOUNT)) {
+                    throw new CommonException("异常优惠券，商品只能使用‘折扣’类型的优惠券", INVALID_ARGUMENT);
+                }
+
+                // 检验优惠券是否对有效门店和有效商品使用
+                if (!coupons.getIsGoodsUniversal()) {
+                    couponsGoodsRelationService.checkValid(couponsId, goods.getId());
+                }
+                if (!coupons.getIsShopUniversal()) {
+                    couponsShopRelationService.checkValid(couponsId, merchantId);
+                }
+
+                orderDetail.setCouponsMemberRelationId(couponsMemberRelationId);
+                BigDecimal discount = coupons.getDiscount();
+                BigDecimal actualPrice = basePrice.multiply(discount);
+                BigDecimal discountAmount = basePrice.subtract(actualPrice);
+
+                orderDetail.setActualAmount(actualPrice);
+                orderDetail.setCouponsDiscountAmount(discountAmount);
+                // 累加实际金额
+                totalActualAmount = totalActualAmount.add(actualPrice);
+            } else {
+                orderDetail.setActualAmount(basePrice);
+                // 累加实际金额
+                totalActualAmount = totalActualAmount.add(basePrice);
+            }
+
+            orderDetailList.add(orderDetail);
         }
-        else {
 
-            int couponsId=couponsMemberRelation.getCouponsId();
-            Coupons coupons=couponsService.getById(couponsId);
-            if(coupons==null || coupons.getIsDelete())
-            {
-                return new BigDecimal(0);
+        goodsOrder.setGoodsTotalBaseAmount(totalBaseAmount);
+        goodsOrder.setGoodsTotalActualAmount(totalActualAmount);
+        goodsOrder.setPlatformExtractPrice(platformExtractPrice);
+
+
+        BigDecimal actualPrice;
+        // 如果该订单使用了满减优惠券
+        Integer couponsMemberRelationId = goodsOrderForm.getCouponsMemberRelationId();
+        if (couponsMemberRelationId != null) {
+            // 检验该优惠券的有效性（这里要进行一次mysql查询）
+            Integer couponsId = couponsMemberRelationService.checkValid(memberId, couponsMemberRelationId);
+            // 从缓存中查询优惠券信息得到满减金额
+            Coupons coupons = couponsService.getCoupons(couponsId);
+
+            if (!(coupons.getPreferentialType() == PreferentialType.REDUCTION)) {
+                throw new CommonException("异常优惠券，订单整体只能使用‘满减’类型的优惠券", INVALID_ARGUMENT);
             }
 
-            //更新优惠券状态为已使用
-            couponsMemberRelation.setIsUsed(true);
-            couponsMemberRelationService.updateById(couponsMemberRelation);
-            if(coupons.getPreferentialType()== PreferentialType.DISCOUNT)
-            {
-                return coupons.getDiscountAmount();
+            // 检验优惠券是否对有效门店使用
+            if (!coupons.getIsShopUniversal()) {
+                couponsShopRelationService.checkValid(couponsId, merchantId);
             }
-            else
-            {
 
-                return coupons.getLimitedPrice().toBigInteger().doubleValue()>actual?new BigDecimal(0.0):coupons.getReducedPrice();
+            goodsOrder.setCouponsMemberRelationId(couponsMemberRelationId);
+            BigDecimal limitedAmount = coupons.getLimitedAmount();
+
+            // 未达到满减金额
+            if (totalActualAmount.compareTo(limitedAmount) < 0) {
+                throw new CommonException("订单总金额未达到满减门槛", INVALID_ARGUMENT);
             }
+            goodsOrder.setCouponReducedAmount(limitedAmount);
+
+            BigDecimal reducedAmount = coupons.getReducedAmount();
+            actualPrice = totalActualAmount.subtract(reducedAmount);
+        } else {
+            actualPrice = totalActualAmount;
         }
+
+        goodsOrder.setActualPrice(actualPrice);
+
+        // 根据实付款计算获得积分值
+        BigDecimal pointIncrease = actualPrice.multiply(POINTS_ACQUISITION_RATIO);
+        goodsOrder.setPointIncrease(pointIncrease);
+
+        // 商家实际收入 = 实付款 - 平台抽成金额
+        BigDecimal merchantIncome = actualPrice.subtract(platformExtractPrice);
+        goodsOrder.setMerchantIncome(merchantIncome);
+
+        goodsOrder.setPaymentDeadline(LocalDateTime.now().plus(PAYMENT_DEADLINE));
+
+        // 订单入库
+        save(goodsOrder);
+        Integer orderId = goodsOrder.getId();
+
+        orderDetailList.forEach(
+                (detail) -> detail.setOrderId(orderId)
+        );
+
+        // 订单细节入库
+        goodsOrderDetailService.saveBatch(orderDetailList);
+
+        // 延迟检测订单状态消息
+        MultiDelayMessage<Integer> delayMessage = MultiDelayMessage.of(orderId, DEFAULT_DELAY_INTERVAL);
+        try {
+            rabbitTemplate.convertAndSend(
+                    MqConstant.ORDER_DELAY_EXCHANGE, MqConstant.ORDER_DELAY_ROUTING_KEY, delayMessage,
+                    new DelayMessageProcessor(delayMessage.removeNextDelay())
+            );
+        } catch (AmqpException e) {
+            throw new CommonException("延迟消息发送异常", MESSAGE_SEND_FAILED);
+        }
+
+        //TODO: 异步写入用户流水
+        log.debug("异步写入用户流水");
+
+        //TODO: 异步写入商家流水
+        log.debug("异步写入商家流水");
+
+        //TODO: 异步写入平台流水
+        log.debug("异步写入平台流水");
+
+        return orderId;
     }
 
 
-    //获取商品的平台抽成比例
+    @Override
+    public boolean markOrderPaySuccess(Integer orderId) {
+        return lambdaUpdate()
+                .set(GoodsOrder::getStatus, OrderStatus.IN_PRODUCTION)
+                .eq(GoodsOrder::getId, orderId)
+                .eq(GoodsOrder::getStatus, OrderStatus.UNPAID)
+                .update();
+    }
 
-    public BigDecimal getPlatformExtractPrice(int goodsId){
-        Goods goods =goodsService.getById(goodsId);
-        if (goods ==null)
-        {
-            throw  new CommonException("订单存在可疑可疑商品",NOT_EXIST);
-        }
-        else   {
-            return goods.getPlatformExtractRatio();
+    @Override
+    public boolean timeoutCancel(Integer orderId) {
+        return lambdaUpdate()
+                .set(GoodsOrder::getStatus, OrderStatus.TIMED_OUT)
+                .eq(GoodsOrder::getId, orderId)
+                .eq(GoodsOrder::getStatus, OrderStatus.UNPAID)
+                .update();
+    }
+
+
+    @Override
+    @Transactional
+    public void payOrderByBalance(Integer orderId) {
+
+        // 检验订单状态是否为未支付状态
+        GoodsOrder order = getById(orderId);
+        if (order == null || order.getPaymentStatus() == PaymentStatus.PAID) {
+            throw new CommonException("订单不存在或已支付", INVALID_ARGUMENT);
         }
 
+        // 尝试扣减余额
+        boolean deductSuccess = memberService.deductBalance(order.getMemberId(), order.getActualPrice());
+        if (!deductSuccess) {
+            throw new CommonException("支付失败", TO_BE_SUPPLEMENTED);
+        }
+
+        // 支付成功更新订单支付状态
+        boolean updateSuccess = lambdaUpdate()
+                .set(GoodsOrder::getPaymentStatus, PaymentStatus.PAID)
+                .set(GoodsOrder::getPaymentSuccessTime, LocalDateTime.now())
+                .eq(GoodsOrder::getId, orderId)
+                .eq(GoodsOrder::getPaymentStatus, PaymentStatus.UNPAID)
+                .update();
+        if (!updateSuccess) {
+            throw new CommonException("更新支付状态失败", TO_BE_SUPPLEMENTED);
+        }
     }
 }

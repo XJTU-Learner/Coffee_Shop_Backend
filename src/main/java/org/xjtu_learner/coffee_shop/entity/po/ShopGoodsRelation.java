@@ -46,28 +46,22 @@ public class ShopGoodsRelation implements Serializable {
     private Integer goodsId;
 
     /**
-     * 商品名称
+     * 是否售空 0=否 1=是
      */
-    @TableField("name")
-    private String name;
+    @TableField("is_sold_out")
+    private Boolean isSoldOut;
 
     /**
-     * 商品图片
+     * 总销量
      */
-    @TableField("image")
-    private String image;
+    @TableField("total_sales")
+    private Integer totalSales;
 
     /**
-     * 基础价格
+     * 是否已下架 0=否 1=是
      */
-    @TableField("base_price")
-    private BigDecimal basePrice;
-
-    /**
-     * 分类标签
-     */
-    @TableField("tag")
-    private String tag;
+    @TableField("is_deleted")
+    private Boolean isDeleted;
 
     /**
      * 创建时间
@@ -80,10 +74,4 @@ public class ShopGoodsRelation implements Serializable {
      */
     @TableField("update_at")
     private LocalDateTime updateAt;
-
-    /**
-     * 是否售空 0=否 1=是
-     */
-    @TableField("is_sold_out")
-    private Boolean isSoldOut;
 }

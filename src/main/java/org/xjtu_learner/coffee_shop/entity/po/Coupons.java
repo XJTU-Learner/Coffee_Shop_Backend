@@ -50,20 +50,20 @@ public class Coupons implements Serializable {
     /**
      * 折扣额度
      */
-    @TableField("discount_amount")
-    private BigDecimal discountAmount;
+    @TableField("discount")
+    private BigDecimal discount;
 
     /**
      * 满足价格（元，满足该价格才能使用）
      */
-    @TableField("limited_price")
-    private BigDecimal limitedPrice;
+    @TableField("limited_amount")
+    private BigDecimal limitedAmount;
 
     /**
      * 减价额度(元)
      */
-    @TableField("reduced_price")
-    private BigDecimal reducedPrice;
+    @TableField("reduced_amount")
+    private BigDecimal reducedAmount;
 
     /**
      * 使用规则描述
@@ -126,10 +126,22 @@ public class Coupons implements Serializable {
     private Integer validDays;
 
     /**
+     * 是否对商品通用
+     */
+    @TableField("is_goods_universal")
+    private Boolean isGoodsUniversal;
+
+    /**
+     * 是否对门店通用
+     */
+    @TableField("is_shop_universal")
+    private Boolean isShopUniversal;
+
+    /**
      * 是否被删除 0=否 1=是
      */
-    @TableField("is_delete")
-    private Boolean isDelete;
+    @TableField("is_deleted")
+    private Boolean isDeleted;
 
     /**
      * 优惠券发放来源 1=积分兑换 2=活动发放 3=秒杀抢购

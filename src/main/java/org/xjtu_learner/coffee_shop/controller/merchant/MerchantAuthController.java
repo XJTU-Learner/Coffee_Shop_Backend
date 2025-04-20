@@ -4,9 +4,9 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import org.xjtu_learner.coffee_shop.common.auth.context.MerchantContext;
 import org.xjtu_learner.coffee_shop.common.utils.RegexUtil;
-import org.xjtu_learner.coffee_shop.entity.dto.LoginForm;
+import org.xjtu_learner.coffee_shop.entity.form.LoginForm;
 import org.xjtu_learner.coffee_shop.entity.dto.MerchantDTO;
-import org.xjtu_learner.coffee_shop.entity.dto.SignupForm;
+import org.xjtu_learner.coffee_shop.entity.form.SignupForm;
 import org.xjtu_learner.coffee_shop.entity.dto.ApiResponse;
 import org.xjtu_learner.coffee_shop.service.IMerchantService;
 

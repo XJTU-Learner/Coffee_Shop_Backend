@@ -12,6 +12,8 @@ import org.xjtu_learner.coffee_shop.common.enums.AuditStatus;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+
 /**
  * <p>
  * 门店重要信息变更记录表
@@ -40,17 +42,6 @@ public class ShopChangeRecord implements Serializable {
     @TableField("merchant_id")
     private Integer merchantId;
 
-    /**
-     * 门店信息id
-     */
-    @TableField("shop_id")
-    private Integer shopId;
-
-    /**
-     * 门店名称
-     */
-    @TableField("nickname")
-    private String nickname;
 
     /**
      * 变更前省份
@@ -176,25 +167,25 @@ public class ShopChangeRecord implements Serializable {
      * 变更前店铺营业开始时间
      */
     @TableField("open_time")
-    private String openTime;
+    private LocalTime openTime;
 
     /**
      * 变更后店铺营业开始时间
      */
     @TableField("new_open_time")
-    private String newOpenTime;
+    private LocalTime newOpenTime;
 
     /**
      * 变更前店铺营业结束时间
      */
     @TableField("close_time")
-    private String closeTime;
+    private LocalTime closeTime;
 
     /**
      * 变更后店铺营业结束时间
      */
     @TableField("new_close_time")
-    private String newCloseTime;
+    private LocalTime newCloseTime;
 
     /**
      * 变更前经度

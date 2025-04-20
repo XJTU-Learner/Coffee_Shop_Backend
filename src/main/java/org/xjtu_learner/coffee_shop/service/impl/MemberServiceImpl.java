@@ -10,7 +10,7 @@ import org.xjtu_learner.coffee_shop.common.auth.VerificationCodeManager;
 import org.xjtu_learner.coffee_shop.common.auth.session.impl.MemberSessionManager;
 import org.xjtu_learner.coffee_shop.common.exception.CommonException;
 import org.xjtu_learner.coffee_shop.common.utils.HttpContext;
-import org.xjtu_learner.coffee_shop.entity.dto.LoginForm;
+import org.xjtu_learner.coffee_shop.entity.form.LoginForm;
 import org.xjtu_learner.coffee_shop.entity.po.Member;
 import org.xjtu_learner.coffee_shop.dao.MemberMapper;
 import org.xjtu_learner.coffee_shop.service.IMemberService;
@@ -104,6 +104,21 @@ public class MemberServiceImpl extends ServiceImpl<MemberMapper, Member> impleme
         } catch (WxErrorException e) {
             throw new CommonException("登陆异常",WX_LOGIN_ERROR);
         }
+    }
+
+    //TODO: 完成用户支付密码系统
+    @Override
+    public boolean checkPaymentPassword(Integer id, Integer paymentPassword) {
+        return true;
+    }
+
+    @Override
+    public boolean deductBalance(Integer memberId, BigDecimal amount) {
+        return lambdaUpdate()
+                .setDecrBy(Member::getBalance, amount)
+                .eq(Member::getId, memberId)
+                .ge(Member::getBalance, amount)
+                .update();
     }
 
 

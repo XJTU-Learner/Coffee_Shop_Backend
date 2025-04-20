@@ -1,7 +1,8 @@
 package org.xjtu_learner.coffee_shop.service;
 
-import org.xjtu_learner.coffee_shop.entity.dto.GoodsDTO;
-import org.xjtu_learner.coffee_shop.entity.po.Goods;
+import org.xjtu_learner.coffee_shop.entity.dto.PageDTO;
+import org.xjtu_learner.coffee_shop.entity.form.PageQuery;
+import org.xjtu_learner.coffee_shop.entity.dto.ShopGoodsDTO;
 import org.xjtu_learner.coffee_shop.entity.po.ShopGoodsRelation;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -16,12 +17,24 @@ import java.util.List;
  * @since 2025-04-03
  */
 public interface IShopGoodsRelationService extends IService<ShopGoodsRelation> {
-    public List<GoodsDTO> getAllGoods(int shopId);
 
-    public List<GoodsDTO> getSoldOutList(int shopId);
+    List<ShopGoodsRelation> getShopGoodsRelationList(Integer shopId);
 
-    public List<GoodsDTO> transferToGoodsDTOList(List<ShopGoodsRelation> goodsList);
+    PageDTO<ShopGoodsRelation> getShopGoodsRelationPage(Integer shopId, PageQuery pageQuery);
 
-    public Goods addNewGoods(int goodId);
+    List<ShopGoodsDTO> getShopGoodsDTOList(List<ShopGoodsRelation> relationList);
 
+    List<ShopGoodsRelation> getSoldOutList(Integer shopId);
+
+    List<ShopGoodsRelation> getSoldOutShopGoodsRelationList(Integer shopId);
+
+    void updateIsSoldOut(Integer shopGoodsRelationId, Boolean isSoldOut);
+
+    void checkExist(Integer shopGoodsRelationId);
+
+    void checkExistBatch(List<Integer> shopGoodsRelationIdList);
+
+    void deleteCache();
+
+    void addGoods(List<Integer> goodIdList);
 }

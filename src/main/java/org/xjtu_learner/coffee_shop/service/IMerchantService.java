@@ -1,9 +1,10 @@
 package org.xjtu_learner.coffee_shop.service;
 
-import org.xjtu_learner.coffee_shop.entity.dto.LoginForm;
-import org.xjtu_learner.coffee_shop.entity.dto.SignupForm;
+import org.xjtu_learner.coffee_shop.entity.form.LoginForm;
+import org.xjtu_learner.coffee_shop.entity.form.SignupForm;
 import org.xjtu_learner.coffee_shop.entity.po.Merchant;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.xjtu_learner.coffee_shop.entity.po.MerchantChangeRecord;
 
 /**
  * <p>
@@ -24,4 +25,6 @@ public interface IMerchantService extends IService<Merchant> {
     void logout();
 
     void signup(SignupForm signupForm);
+
+    void updateMerchant(MerchantChangeRecord record);
 }

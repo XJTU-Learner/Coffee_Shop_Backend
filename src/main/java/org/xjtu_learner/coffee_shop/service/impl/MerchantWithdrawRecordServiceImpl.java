@@ -2,7 +2,7 @@ package org.xjtu_learner.coffee_shop.service.impl;
 
 import org.springframework.transaction.annotation.Transactional;
 import org.xjtu_learner.coffee_shop.common.auth.context.MerchantContext;
-import org.xjtu_learner.coffee_shop.entity.dto.WithdrawalForm;
+import org.xjtu_learner.coffee_shop.entity.form.WithdrawalForm;
 import org.xjtu_learner.coffee_shop.entity.po.Merchant;
 import org.xjtu_learner.coffee_shop.entity.po.MerchantWithdrawRecord;
 import org.xjtu_learner.coffee_shop.dao.MerchantWithdrawRecordMapper;
