@@ -51,10 +51,13 @@ public class MemberOrderController {
         }
         else {
             Member member = memberService.getById(MemberContext.get().getId());
-            if (member.getBalance().compareTo(new BigDecimal(payOrderForm.getActual_price())) < 0) {
+            if (member.getBalance().compareTo(new BigDecimal(payOrderForm.getActual_price())) < 0)
+            {
                 return ApiResponse.failure("余额不足！");
             } else {
-                goodsOrderService.payOrder(payOrderForm.getOrder_id());
+                goodsOrderService.payOrder(member,payOrderForm);
+
+
                 return ApiResponse.success("支付成功！");
 
             }

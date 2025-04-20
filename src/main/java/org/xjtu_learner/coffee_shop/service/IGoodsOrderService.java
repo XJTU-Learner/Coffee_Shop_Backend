@@ -4,6 +4,7 @@ import org.xjtu_learner.coffee_shop.entity.dto.MemberOrderForm;
 import org.xjtu_learner.coffee_shop.entity.dto.PayOrderForm;
 import org.xjtu_learner.coffee_shop.entity.po.GoodsOrder;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.xjtu_learner.coffee_shop.entity.po.Member;
 
 /**
  * <p>
@@ -17,6 +18,6 @@ public interface IGoodsOrderService extends IService<GoodsOrder> {
 
     void createOrder(MemberOrderForm memberOrderForm);
 
-    void payOrder( int OrderId);
+    void payOrder( Member member,PayOrderForm payOrderForm);
 
 }

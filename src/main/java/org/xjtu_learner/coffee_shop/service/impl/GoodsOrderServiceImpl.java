@@ -1,6 +1,7 @@
 package org.xjtu_learner.coffee_shop.service.impl;
 
-import jdk.jshell.Snippet;
+
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -9,7 +10,6 @@ import org.xjtu_learner.coffee_shop.common.enums.OrderStatus;
 import org.xjtu_learner.coffee_shop.common.enums.PaymentStatus;
 import org.xjtu_learner.coffee_shop.common.enums.PreferentialType;
 import org.xjtu_learner.coffee_shop.common.exception.CommonException;
-import org.xjtu_learner.coffee_shop.config.RabbitMQConfig;
 import org.xjtu_learner.coffee_shop.entity.dto.GoodsOrderForm;
 import org.xjtu_learner.coffee_shop.entity.dto.MemberOrderForm;
 import org.xjtu_learner.coffee_shop.entity.dto.PayOrderForm;
@@ -18,10 +18,12 @@ import org.xjtu_learner.coffee_shop.dao.GoodsOrderMapper;
 import org.xjtu_learner.coffee_shop.service.IGoodsOrderService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
 
 import java.math.BigDecimal;
 import java.util.List;
-
+import java.util.concurrent.atomic.AtomicInteger;
+import org.slf4j.Logger;
 import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant.NOT_EXIST;
 import static org.xjtu_learner.coffee_shop.common.constant.OrderMq.*;
 import static org.xjtu_learner.coffee_shop.common.constant.PayMq.*;
@@ -37,7 +39,8 @@ import static org.xjtu_learner.coffee_shop.common.constant.PayMq.*;
 @Service
 public class GoodsOrderServiceImpl extends ServiceImpl<GoodsOrderMapper, GoodsOrder> implements IGoodsOrderService {
 
-
+    private static final Logger logger = LoggerFactory.getLogger(GoodsOrderServiceImpl.class);
+    private static final int MAX_RETRY_ATTEMPTS = 3;
     private  final  GoodsServiceImpl goodsService;
     private  final  GoodsOrderDetailServiceImpl goodsOrderDetailService;
     private  final  CouponsServiceImpl couponsService;
@@ -125,16 +128,22 @@ public class GoodsOrderServiceImpl extends ServiceImpl<GoodsOrderMapper, GoodsOr
 
         // 在事务之外使用返回的订单对象
         if (goodsOrder != null) {
-            rabbitTemplate.convertAndSend(ORDER_EXCHANGE, ORDER_ROUTING_KEY, goodsOrder.getId());
+           sendOrderMessage(goodsOrder);
         }
     }
 
 
     //支付订单
     @Override
-    public void payOrder(int  OrderId) {
+    public void payOrder(Member member,PayOrderForm payOrderForm) {
+
+        //执行扣费
+        member.setBalance(member.getBalance().subtract(new BigDecimal(payOrderForm.getActual_price())));
+        member.setTotalConsumeBalance(new BigDecimal(payOrderForm.getActual_price()));
+        member.setTotalConsumePoints(new BigDecimal(payOrderForm.getActual_price()));
+        member.setPoints(member.getPoints().add(new BigDecimal(payOrderForm.getActual_price())));
         //加入消息队列执行异步消费
-        rabbitTemplate.convertAndSend(PAY_EXCHANGE,PAY_ROUTING_KEY,OrderId);
+       sendPayMessage(payOrderForm.getOrder_id());
     }
 
     /*
@@ -143,6 +152,81 @@ public class GoodsOrderServiceImpl extends ServiceImpl<GoodsOrderMapper, GoodsOr
     * 辅助函数
     *
     * */
+
+
+
+    //  将订单信息发送到消息队列
+    private void sendOrderMessage(GoodsOrder goodsOrder) {
+        int orderId = goodsOrder.getId();
+        CorrelationData correlationData = new CorrelationData(String.valueOf(orderId));
+        AtomicInteger retryCount = new AtomicInteger(0);
+
+        // 设置确认确认进入交换机回调
+        rabbitTemplate.setConfirmCallback((data, ack, cause) -> {
+            if (data == null) {
+                logger.error( "CorrelationData is null in confirm callback");
+                return;
+            }
+            String messageId = data.getId();
+            if (ack) {
+                logger.info("Message sent successfully for orderId: {}", messageId);
+            } else {
+                logger.error("Message send failed for orderId: {}, cause: {}", messageId, cause);
+                if (retryCount.getAndIncrement() < MAX_RETRY_ATTEMPTS) {
+                    logger.info("Retrying send for orderId: {}, attempt: {}", messageId, retryCount.get());
+                    rabbitTemplate.convertAndSend(ORDER_EXCHANGE, ORDER_ROUTING_KEY, orderId, data);
+                } else {
+                    logger.error("Max retry attempts reached for orderId: {}", messageId);
+                    // 可选：记录到数据库或死信队列
+                }
+            }
+        });
+
+        // 确认进入队列返回回调
+        rabbitTemplate.setReturnsCallback(returned -> {
+            String messageId = returned.getMessage().getMessageProperties().getCorrelationId();
+            logger.error("Message returned for orderId: {}, reason: {}, exchange: {}, routingKey: {}",
+                    messageId, returned.getReplyText(), returned.getExchange(), returned.getRoutingKey());
+        });
+        // 发送消息
+        logger.info("Attempting to send message for orderId: {}", orderId);
+        rabbitTemplate.convertAndSend(ORDER_EXCHANGE, ORDER_ROUTING_KEY, orderId, correlationData);
+    }
+
+    //将支付消息发送到消息队列
+
+    private void sendPayMessage(int orderId) {
+        CorrelationData correlationData = new CorrelationData(String.valueOf(orderId));
+        AtomicInteger retryCount =new AtomicInteger(0);
+        rabbitTemplate.setConfirmCallback((data, ack, cause) -> {
+            if (data == null) {
+                logger.error( "CorrelationData is null in confirm callback!");
+                return;
+            }
+            String messageId = data.getId();
+            if (ack) {
+                logger.info("Message sent successfully for payOrderId: {}", messageId);
+            } else {
+                logger.error("Message send failed for payOrderId: {}, cause: {}", messageId, cause);
+                if (retryCount.getAndIncrement() < MAX_RETRY_ATTEMPTS) {
+                    logger.info("Retrying send for payOrderId: {}, attempt: {}", messageId, retryCount.get());
+                    rabbitTemplate.convertAndSend(PAY_EXCHANGE, PAY_ROUTING_KEY, orderId, data);
+                } else {
+                    logger.error("Max retry attempts reached for payOrderId: {}", messageId);
+                }
+            }
+        });
+
+        // 确认进入队列返回回调
+        rabbitTemplate.setReturnsCallback(returned -> {
+            String messageId = returned.getMessage().getMessageProperties().getCorrelationId();
+            logger.error("Message returned for payOrderId: {}, reason: {}, exchange: {}, routingKey: {}",
+                    messageId, returned.getReplyText(), returned.getExchange(), returned.getRoutingKey());
+        });
+
+        rabbitTemplate.convertAndSend(PAY_EXCHANGE,PAY_ROUTING_KEY,orderId);
+
+    }
 
     @Transactional
     public BigDecimal getDiscountAmount(int MembercouponsId,double actual)
