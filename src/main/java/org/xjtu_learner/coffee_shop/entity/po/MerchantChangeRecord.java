@@ -56,7 +56,7 @@ public class MerchantChangeRecord implements Serializable {
      * 变更前门店名称
      */
     @TableField("nickname")
-    private String nickName;
+    private String nickname;
 
     /**
      * 变更后门店名称

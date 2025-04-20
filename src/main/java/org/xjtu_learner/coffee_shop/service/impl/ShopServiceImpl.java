@@ -15,14 +15,16 @@ import org.xjtu_learner.coffee_shop.entity.dto.PageDTO;
 import org.xjtu_learner.coffee_shop.entity.form.PageQuery;
 import org.xjtu_learner.coffee_shop.entity.po.Shop;
 import org.xjtu_learner.coffee_shop.dao.ShopMapper;
+import org.xjtu_learner.coffee_shop.entity.po.ShopChangeRecord;
 import org.xjtu_learner.coffee_shop.service.IShopService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant.NOT_EXIST;
+import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant.*;
 import static org.xjtu_learner.coffee_shop.common.constant.RedisConstant.CACHE_SHOP_GEO_KEY;
 import static org.xjtu_learner.coffee_shop.common.constant.RedisConstant.CACHE_SHOP_PREFIX;
 import static org.xjtu_learner.coffee_shop.common.utils.BloomFilterUtil.*;
@@ -57,6 +59,10 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
 
         List<Shop> shopList = lambdaQuery().list();
 
+        if (CollectionUtil.isEmpty(shopList)) {
+            return;
+        }
+
         // 将未命中的商品重新加载到缓存
         Map<String, String> toCacheString = shopList.stream()
                 .collect(Collectors.toMap(
@@ -90,7 +96,9 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
                 .map(Object::toString)
                 .toList();
 
-        bloomFilter.add(shopIdList);
+        if (CollectionUtil.isNotEmpty(shopIdList)) {
+            bloomFilter.add(shopIdList);
+        }
     }
 
     @Override
@@ -178,10 +186,10 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     public Map<Shop, String> getNearbyShop(NearbySearchForm form) {
 
         /*
-        * 这里可能有数据不一致的问题，当一个shop的信息变更后，需要在缓存中删除其记录以及在GEO缓存中的记录，
-        * 该shop的缓存重建应当发生在getShopList()中，在重建shop信息的同时重建GEO缓存，本方法不触发getShopList()
-        * 中的缓存重建，也不应该触发缓存重建（因为从GEO缓存搜索附近门店无法得知哪些门店缓存失效）
-        * */
+         * 这里可能有数据不一致的问题，当一个shop的信息变更后，需要在缓存中删除其记录以及在GEO缓存中的记录，
+         * 该shop的缓存重建应当发生在getShopList()中，在重建shop信息的同时重建GEO缓存，本方法不触发getShopList()
+         * 中的缓存重建，也不应该触发缓存重建（因为从GEO缓存搜索附近门店无法得知哪些门店缓存失效）
+         * */
 
         // TODO:解决这里的数据一致性问题
 
@@ -208,5 +216,43 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
                         Map.Entry::getValue
                 )
         );
+    }
+
+    @Override
+    public void updateShop(ShopChangeRecord record) {
+
+        boolean success = lambdaUpdate()
+                .set(record.getNewProvince() != null, Shop::getProvince, record.getNewProvince())
+                .set(record.getNewCity() != null, Shop::getCity, record.getNewCity())
+                .set(record.getNewArea() != null, Shop::getArea, record.getNewArea())
+                .set(record.getNewStreet() != null, Shop::getStreet, record.getNewStreet())
+                .set(record.getNewHouseNumber() != null, Shop::getHouseNumber, record.getNewHouseNumber())
+                .set(record.getNewShopImg() != null, Shop::getShopImg, record.getNewShopImg())
+                .set(record.getNewContactRealname() != null, Shop::getContactRealname, record.getNewContactRealname())
+                .set(record.getNewContactPhone() != null, Shop::getContactPhone, record.getNewContactPhone())
+                .set(record.getNewBriefIntroduction() != null, Shop::getBriefIntroduction, record.getNewBriefIntroduction())
+                .set(record.getNewBusinessLicense() != null, Shop::getBusinessLicense, record.getNewBusinessLicense())
+                .set(record.getNewOpenTime() != null, Shop::getOpenTime, record.getNewOpenTime())
+                .set(record.getNewCloseTime() != null, Shop::getCloseTime, record.getNewCloseTime())
+                .set(record.getNewLatitude() != null, Shop::getLatitude, record.getNewLatitude())
+                .set(record.getNewLongitude() != null, Shop::getLongitude, record.getNewLongitude())
+                .set(Shop::getUpdateAt, LocalDateTime.now())
+                .update();
+
+        if (!success) {
+            throw new CommonException("更新门店信息异常", TO_BE_SUPPLEMENTED);
+        }
+    }
+
+    @Override
+    public void setShopNickname(Integer merchantId, String newNickname) {
+        boolean success = lambdaUpdate()
+                .set(Shop::getNickname, newNickname)
+                .eq(Shop::getId, merchantId)
+                .update();
+
+        if (!success) {
+            throw new CommonException("设置门店名称失败", UPDATE_FAILED);
+        }
     }
 }

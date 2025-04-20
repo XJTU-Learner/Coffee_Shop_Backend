@@ -37,7 +37,7 @@ public class MerchantGoodsController {
     @GetMapping
     public ApiResponse<PageDTO<ShopGoodsDTO>> getShopGoodsPage(PageQuery pageQuery) {
 
-        int shopId = MerchantContext.get().getShopId();
+        int shopId = MerchantContext.get().getId();
         PageDTO<ShopGoodsRelation> goodsList = shopGoodsRelationService.getShopGoodsRelationPage(shopId, pageQuery);
         List<ShopGoodsDTO> shopGoodsDTOList = shopGoodsRelationService.getShopGoodsDTOList(goodsList.getList());
 
@@ -54,7 +54,7 @@ public class MerchantGoodsController {
     @GetMapping("/soldOut")
     public ApiResponse<List<ShopGoodsDTO>> getSoldOutPage() {
 
-        int shopId = MerchantContext.get().getShopId();
+        int shopId = MerchantContext.get().getId();
         List<ShopGoodsRelation> goodsList = shopGoodsRelationService.getSoldOutList(shopId);
         List<ShopGoodsDTO> shopGoodsDTOList = shopGoodsRelationService.getShopGoodsDTOList(goodsList);
 

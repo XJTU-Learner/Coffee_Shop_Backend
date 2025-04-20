@@ -32,8 +32,14 @@ public class Shop implements Serializable {
     /**
      * 主键id
      */
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id")
     private Integer id;
+
+    /**
+     * 门店名称
+     */
+    @TableField("nickname")
+    private String nickname;
 
     /**
      * 省份

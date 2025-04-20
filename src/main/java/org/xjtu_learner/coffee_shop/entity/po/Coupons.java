@@ -126,6 +126,18 @@ public class Coupons implements Serializable {
     private Integer validDays;
 
     /**
+     * 是否对商品通用
+     */
+    @TableField("is_goods_universal")
+    private Boolean isGoodsUniversal;
+
+    /**
+     * 是否对门店通用
+     */
+    @TableField("is_shop_universal")
+    private Boolean isShopUniversal;
+
+    /**
      * 是否被删除 0=否 1=是
      */
     @TableField("is_deleted")

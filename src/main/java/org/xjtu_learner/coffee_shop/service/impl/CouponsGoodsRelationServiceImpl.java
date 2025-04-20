@@ -120,4 +120,16 @@ public class CouponsGoodsRelationServiceImpl extends ServiceImpl<CouponsGoodsRel
 
         removeBatchByIds(existingToSubtract.keySet());
     }
+
+    @Override
+    public void checkValid(Integer couponsId, Integer goodsId) {
+        boolean exists = lambdaQuery()
+                .eq(CouponsGoodsRelation::getCouponsId, couponsId)
+                .eq(CouponsGoodsRelation::getGoodsId, goodsId)
+                .exists();
+
+        if (!exists) {
+            throw new CommonException("该优惠券无法对本商品使用", INVALID_ARGUMENT);
+        }
+    }
 }

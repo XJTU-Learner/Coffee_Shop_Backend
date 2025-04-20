@@ -19,6 +19,8 @@ import org.xjtu_learner.coffee_shop.dao.MerchantChangeRecordMapper;
 import org.xjtu_learner.coffee_shop.service.IMerchantChangeRecordService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
+import org.xjtu_learner.coffee_shop.service.IMerchantService;
+import org.xjtu_learner.coffee_shop.service.IShopService;
 
 import java.time.LocalDateTime;
 
@@ -35,10 +37,12 @@ import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant
 @Service
 public class MerchantChangeRecordServiceImpl extends ServiceImpl<MerchantChangeRecordMapper, MerchantChangeRecord> implements IMerchantChangeRecordService {
 
-    private final MerchantServiceImpl merchantService;
+    private final IMerchantService merchantService;
+    private final IShopService shopService;
 
-    public MerchantChangeRecordServiceImpl(MerchantServiceImpl merchantService) {
+    public MerchantChangeRecordServiceImpl(MerchantServiceImpl merchantService, IShopService shopService) {
         this.merchantService = merchantService;
+        this.shopService = shopService;
     }
 
     @Override
@@ -48,6 +52,7 @@ public class MerchantChangeRecordServiceImpl extends ServiceImpl<MerchantChangeR
         // 判断是否有正在进行的审核
         boolean exists = lambdaQuery()
                 .eq(MerchantChangeRecord::getMerchantId, id)
+                .eq(MerchantChangeRecord::getAuditStatus, AuditStatus.ONGOING)
                 .exists();
         if (exists) {
             throw new CommonException("已有正在进行的审核", AUDIT_ONGOING);
@@ -70,7 +75,7 @@ public class MerchantChangeRecordServiceImpl extends ServiceImpl<MerchantChangeR
     @Override
     public void saveInitRecord(MerchantChangeForm formDTO) {
         if (!checkInitForm(formDTO))
-            throw new CommonException("商户资料初始化表单不完整，商户资料初始化的必填字段有newCertificateType、newCertificateImg、" +
+            throw new CommonException("商户资料初始化表单不完整，商户资料初始化的必填字段有newNickname、newCertificateType、newCertificateImg、" +
                     "newRealName、newIdCard、newOpeningBank和newBankCard", INVALID_ARGUMENT);
         saveRecord(formDTO);
     }
@@ -79,7 +84,7 @@ public class MerchantChangeRecordServiceImpl extends ServiceImpl<MerchantChangeR
     public PageDTO<MerchantChangeRecordDTO> getChangeProfileList(PageQuery pageQuery) {
         Page<MerchantChangeRecord> recordPage = lambdaQuery()
                 .eq(MerchantChangeRecord::getAuditStatus, AuditStatus.ONGOING)
-                .page(pageQuery.toMpPage(pageQuery.getSortBy(),pageQuery.getIsAsc()));
+                .page(pageQuery.toMpPage(pageQuery.getSortBy(), pageQuery.getIsAsc()));
 
         return PageDTO.of(recordPage, record -> BeanUtil.copyProperties(record, MerchantChangeRecordDTO.class));
     }
@@ -88,24 +93,38 @@ public class MerchantChangeRecordServiceImpl extends ServiceImpl<MerchantChangeR
     @Transactional
     public void auditChangeProfile(AuditChangeForm form) {
         // 检查该记录是否正在审核中
-        MerchantChangeRecord record = lambdaQuery().eq(MerchantChangeRecord::getId, form.getId()).one();
-        if(record==null) throw new CommonException("变更申请记录不存在",NOT_EXIST);
-        if(record.getAuditStatus()!=AuditStatus.ONGOING) throw new CommonException("变更申请记录不在进行中",AUDIT_NOT_ONGOING);
+        MerchantChangeRecord record = lambdaQuery()
+                .eq(MerchantChangeRecord::getId, form.getId())
+                .eq(MerchantChangeRecord::getAuditStatus, AuditStatus.ONGOING)
+                .one();
+        if (record == null) throw new CommonException("变更申请记录不存在", NOT_EXIST);
+        if (record.getAuditStatus() != AuditStatus.ONGOING)
+            throw new CommonException("变更申请记录不在进行中", AUDIT_NOT_ONGOING);
 
-        lambdaUpdate()
+        boolean success = lambdaUpdate()
                 .set(MerchantChangeRecord::getAuditor, AdminContext.get().getId())
-                .set(form.getSuccess(),MerchantChangeRecord::getAuditStatus,AuditStatus.SUCCEED)
-                .set(!form.getSuccess(),MerchantChangeRecord::getAuditStatus,AuditStatus.FAILED)
-                .set(MerchantChangeRecord::getAuditReason,form.getAuditReason())
+                .set(form.getSuccess(), MerchantChangeRecord::getAuditStatus, AuditStatus.SUCCEED)
+                .set(!form.getSuccess(), MerchantChangeRecord::getAuditStatus, AuditStatus.FAILED)
+                .set(!form.getSuccess(), MerchantChangeRecord::getAuditReason, form.getAuditReason())
                 .set(MerchantChangeRecord::getAuditTime, LocalDateTime.now())
                 .set(MerchantChangeRecord::getUpdateAt, LocalDateTime.now())
-                .eq(MerchantChangeRecord::getId,form.getId())
+                .eq(MerchantChangeRecord::getId, form.getId())
                 .update();
+
+        // 审核通过则修改商户信息
+        if (success && form.getSuccess()) {
+            merchantService.updateMerchant(record);
+            // 同时将门店昵称写入到tb_shop表当中
+            if (record.getNewNickname() != null) {
+                shopService.setShopNickname(record.getMerchantId(), record.getNewNickname());
+            }
+        }
     }
 
     private boolean checkInitForm(MerchantChangeForm formDTO) {
-        // 检查表单中是否包含商户资料初始化的必填字段：newCertificateType、newCertificateImg、newRealName、newIdCard、
+        // 检查表单中是否包含商户资料初始化的必填字段：newNickname、newCertificateType、newCertificateImg、newRealName、newIdCard、
         // newOpeningBank和newBankCard
+        if (StrUtil.isBlank(formDTO.getNewNickname())) return false;
         if (formDTO.getNewCertificateType() == null) return false;
         if (StrUtil.isBlank(formDTO.getNewCertificateImg())) return false;
         if (StrUtil.isBlank(formDTO.getNewRealName())) return false;

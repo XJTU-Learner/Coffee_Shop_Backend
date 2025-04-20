@@ -75,7 +75,9 @@ public class CouponsServiceImpl extends ServiceImpl<CouponsMapper, Coupons> impl
                 .map(Object::toString)
                 .toList();
 
-        bloomFilter.add(couponsIdList);
+        if (CollectionUtil.isNotEmpty(couponsIdList)) {
+            bloomFilter.add(couponsIdList);
+        }
     }
 
     private void initCache() {
@@ -84,6 +86,10 @@ public class CouponsServiceImpl extends ServiceImpl<CouponsMapper, Coupons> impl
         List<Coupons> toCaChe = lambdaQuery()
                 .eq(Coupons::getIsDeleted, false)
                 .list();
+
+        if(CollectionUtil.isEmpty(toCaChe)){
+            return;
+        }
 
         Map<String, String> toCaCheString = toCaChe.stream()
                 .collect(Collectors.toMap(
@@ -194,8 +200,12 @@ public class CouponsServiceImpl extends ServiceImpl<CouponsMapper, Coupons> impl
         save(coupons);
 
         Integer couponsId = coupons.getId();
-        couponsGoodsRelationService.createRelations(couponsId, form.getRelatedGoods());
-        couponsShopRelationService.createRelations(couponsId, form.getRelatedShop());
+        if (!coupons.getIsGoodsUniversal() || coupons.getPreferentialType() == PreferentialType.REDUCTION) {
+            couponsGoodsRelationService.createRelations(couponsId, form.getRelatedGoods());
+        }
+        if (!coupons.getIsShopUniversal()) {
+            couponsShopRelationService.createRelations(couponsId, form.getRelatedShop());
+        }
     }
 
 

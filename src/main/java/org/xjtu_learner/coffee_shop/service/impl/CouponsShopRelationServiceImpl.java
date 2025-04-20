@@ -122,4 +122,16 @@ public class CouponsShopRelationServiceImpl extends ServiceImpl<CouponsShopRelat
 
         removeBatchByIds(existingToSubtract.keySet());
     }
+
+    @Override
+    public void checkValid(Integer couponsId, Integer shopId) {
+        boolean exists = lambdaQuery()
+                .eq(CouponsShopRelation::getCouponsId, couponsId)
+                .eq(CouponsShopRelation::getShopId, shopId)
+                .exists();
+
+        if(!exists){
+            throw new CommonException("该优惠券无法在本门店使用",INVALID_ARGUMENT);
+        }
+    }
 }

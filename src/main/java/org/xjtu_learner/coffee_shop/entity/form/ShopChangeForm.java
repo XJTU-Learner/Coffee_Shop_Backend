@@ -3,6 +3,7 @@ package org.xjtu_learner.coffee_shop.entity.form;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalTime;
 
 @Data
 public class ShopChangeForm {
@@ -60,12 +61,12 @@ public class ShopChangeForm {
     /**
      * 变更后店铺营业开始时间
      */
-    private String newOpenTime;
+    private LocalTime newOpenTime;
 
     /**
      * 变更后店铺营业结束时间
      */
-    private String newCloseTime;
+    private LocalTime newCloseTime;
 
     /**
      * 变更后经度

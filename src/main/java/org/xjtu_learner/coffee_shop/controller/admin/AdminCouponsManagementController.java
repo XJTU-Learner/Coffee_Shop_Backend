@@ -16,6 +16,7 @@ import org.xjtu_learner.coffee_shop.service.ICouponsShopRelationService;
 import java.util.List;
 
 import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant.INVALID_ARGUMENT;
+import static org.xjtu_learner.coffee_shop.common.constant.ExceptionCodeConstant.NOT_EXIST;
 
 @RestController
 @RequestMapping("/admin/coupons")
@@ -47,25 +48,26 @@ public class AdminCouponsManagementController {
     @Transactional
     public ApiResponse<String> updateCoupons(@RequestBody CouponsChangeForm form) {
 
-        if(form.getBase() == null) throw new CommonException("参数base不允许为空",INVALID_ARGUMENT);
-        couponsService.updateCoupons(form.getBase());
+        CouponsForm base = form.getBase();
+        if (base == null) throw new CommonException("参数base不允许为空", INVALID_ARGUMENT);
+        couponsService.updateCoupons(base);
 
-        Integer couponsId = form.getBase().getId();
+        Integer couponsId = base.getId();
         RelationChangeForm relatedGoodsChange = form.getRelatedGoodsChange();
-        if(relatedGoodsChange != null){
-            if(relatedGoodsChange.getPlus() != null){
+        if (!base.getIsGoodsUniversal() && relatedGoodsChange != null) {
+            if (relatedGoodsChange.getPlus() != null) {
                 couponsGoodsRelationService.createRelations(couponsId, relatedGoodsChange.getPlus());
             }
-            if(relatedGoodsChange.getSubtract() != null){
+            if (relatedGoodsChange.getSubtract() != null) {
                 couponsGoodsRelationService.deleteRelation(couponsId, relatedGoodsChange.getSubtract());
             }
         }
         RelationChangeForm relatedShopChange = form.getRelatedShopChange();
-        if(relatedShopChange != null){
-            if(relatedShopChange.getPlus() != null){
+        if (!base.getIsShopUniversal() || relatedShopChange != null) {
+            if (relatedShopChange.getPlus() != null) {
                 couponsShopRelationService.createRelations(couponsId, relatedShopChange.getPlus());
             }
-            if(relatedShopChange.getSubtract() != null){
+            if (relatedShopChange.getSubtract() != null) {
                 couponsShopRelationService.deleteRelation(couponsId, relatedShopChange.getSubtract());
             }
         }
@@ -81,13 +83,27 @@ public class AdminCouponsManagementController {
 
     @GetMapping("/relatedGoods")
     public ApiResponse<List<RelationDTO>> getRelatedGoodsList(@RequestParam("couponsId") Integer id) {
+        Coupons coupons = couponsService.getCoupons(id);
+        if (coupons.getIsGoodsUniversal()) {
+            return ApiResponse.failure("该优惠券对商品通用");
+        }
         List<RelationDTO> list = couponsGoodsRelationService.getRelatedGoodsList(id);
+        if (list.isEmpty()) {
+            throw new CommonException("未查询到该优惠券到指定商品信息", NOT_EXIST);
+        }
         return ApiResponse.success(list);
     }
 
     @GetMapping("/relatedShop")
     public ApiResponse<List<RelationDTO>> getRelatedShopList(@RequestParam("couponsId") Integer id) {
+        Coupons coupons = couponsService.getCoupons(id);
+        if (coupons.getIsShopUniversal()) {
+            return ApiResponse.failure("该优惠券对门店通用");
+        }
         List<RelationDTO> list = couponsShopRelationService.getRelatedShopList(id);
+        if (list.isEmpty()) {
+            throw new CommonException("未查询到该优惠券到指定门店信息", NOT_EXIST);
+        }
         return ApiResponse.success(list);
     }
 }

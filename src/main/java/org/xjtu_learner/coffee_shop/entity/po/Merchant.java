@@ -34,11 +34,6 @@ public class Merchant implements Serializable {
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
-    /**
-     * 门店信息id
-     */
-    @TableField("shop_id")
-    private Integer shopId;
 
     /**
      * 手机号码

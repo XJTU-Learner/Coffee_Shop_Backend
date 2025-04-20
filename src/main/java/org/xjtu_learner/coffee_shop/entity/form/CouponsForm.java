@@ -1,5 +1,6 @@
 package org.xjtu_learner.coffee_shop.entity.form;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import lombok.Data;
@@ -102,6 +103,16 @@ public class CouponsForm {
      * 优惠券发放来源 1=积分兑换 2=活动发放 3=秒杀抢购
      */
     private Integer source;
+
+    /**
+     * 是否对商品通用
+     */
+    private Boolean isGoodsUniversal;
+
+    /**
+     * 是否对门店通用
+     */
+    private Boolean isShopUniversal;
 
     /**
      * 关联商品

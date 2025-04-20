@@ -35,7 +35,7 @@ public class MerchantChangeRecordDTO {
     /**
      * 变更前门店名称
      */
-    private String nickName;
+    private String nickname;
 
     /**
      * 变更后门店名称

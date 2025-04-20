@@ -11,11 +11,6 @@ public class MerchantDTO {
     private Integer id;
 
     /**
-     * 门店信息id
-     */
-    private Integer shopId;
-
-    /**
      * 手机号码
      */
     private String mobile;

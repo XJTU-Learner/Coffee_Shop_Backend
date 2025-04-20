@@ -50,19 +50,23 @@ public class GoodsOrderServiceImpl extends ServiceImpl<GoodsOrderMapper, GoodsOr
     private final ICouponsService couponsService;
     private final IGoodsOrderDetailService goodsOrderDetailService;
     private final ICouponsMemberRelationService couponsMemberRelationService;
+    private final ICouponsGoodsRelationService couponsGoodsRelationService;
+    private final ICouponsShopRelationService couponsShopRelationService;
 
     private final RabbitTemplate rabbitTemplate;
 
     private final TransactionTemplate transactionTemplate;
 
-    public GoodsOrderServiceImpl(GoodsServiceImpl goodsService, GoodsOrderDetailServiceImpl goodsOrderDetailService, CouponsServiceImpl couponsService, CouponsMemberRelationServiceImpl couponsMemberRelationService, CallMeBotService callMeBotService, MemberServiceImpl memberService, RabbitTemplate rabbitTemplate, TransactionTemplate transactionTemplate, CallMeBotService callMeBotService1, MemberServiceImpl memberService1, TransactionTemplate transactionTemplate1) {
+    public GoodsOrderServiceImpl(GoodsServiceImpl goodsService, GoodsOrderDetailServiceImpl goodsOrderDetailService, CouponsServiceImpl couponsService, CouponsMemberRelationServiceImpl couponsMemberRelationService, CallMeBotService callMeBotService, MemberServiceImpl memberService, ICouponsShopRelationService couponsShopRelationService, RabbitTemplate rabbitTemplate, TransactionTemplate transactionTemplate, CallMeBotService callMeBotService1, MemberServiceImpl memberService1, ICouponsGoodsRelationService couponsGoodsRelationService, TransactionTemplate transactionTemplate1) {
         this.goodsService = goodsService;
         this.goodsOrderDetailService = goodsOrderDetailService;
         this.couponsService = couponsService;
         this.couponsMemberRelationService = couponsMemberRelationService;
+        this.couponsShopRelationService = couponsShopRelationService;
         this.rabbitTemplate = rabbitTemplate;
         this.callMeBotService = callMeBotService1;
         this.memberService = memberService1;
+        this.couponsGoodsRelationService = couponsGoodsRelationService;
         this.transactionTemplate = transactionTemplate1;
     }
 
@@ -71,9 +75,11 @@ public class GoodsOrderServiceImpl extends ServiceImpl<GoodsOrderMapper, GoodsOr
     public Integer createOrder(GoodsOrderForm goodsOrderForm) {
 
         Integer memberId = MemberContext.get().getId();
+        Integer merchantId = goodsOrderForm.getMerchantId();
+
         GoodsOrder goodsOrder = new GoodsOrder();
         goodsOrder.setMemberId(memberId);
-        goodsOrder.setMerchantId(goodsOrderForm.getMerchantId());
+        goodsOrder.setMerchantId(merchantId);
         goodsOrder.setRemark(goodsOrderForm.getRemark());
         goodsOrder.setPaymentMode(goodsOrderForm.getPaymentMode());
 
@@ -84,9 +90,9 @@ public class GoodsOrderServiceImpl extends ServiceImpl<GoodsOrderMapper, GoodsOr
         int totalCount = details.size();
         goodsOrder.setGoodsTotalQuantity(totalCount);
 
-        // TODO：计算该订单的总价
         // 先通过缓存查得各商品详细信息
         List<Goods> goodsList = goodsService.getGoodsList(details.stream().map(GoodsOrderDetailForm::getGoodsId).toList());
+
         Map<Integer, Goods> goodsMap = goodsList.stream()
                 .collect(Collectors.toMap(
                         Goods::getId,
@@ -122,10 +128,17 @@ public class GoodsOrderServiceImpl extends ServiceImpl<GoodsOrderMapper, GoodsOr
                 // 这里要进行一次mysql查询
                 Integer couponsId = couponsMemberRelationService.checkValid(memberId, couponsMemberRelationId);
                 Coupons coupons = couponsService.getCoupons(couponsId);
-                //TODO: 检验优惠券是否对有效门店和有效商品使用
 
                 if (!(coupons.getPreferentialType() == PreferentialType.DISCOUNT)) {
                     throw new CommonException("异常优惠券，商品只能使用‘折扣’类型的优惠券", INVALID_ARGUMENT);
+                }
+
+                // 检验优惠券是否对有效门店和有效商品使用
+                if (!coupons.getIsGoodsUniversal()) {
+                    couponsGoodsRelationService.checkValid(couponsId, goods.getId());
+                }
+                if (!coupons.getIsShopUniversal()) {
+                    couponsShopRelationService.checkValid(couponsId, merchantId);
                 }
 
                 orderDetail.setCouponsMemberRelationId(couponsMemberRelationId);
@@ -160,11 +173,15 @@ public class GoodsOrderServiceImpl extends ServiceImpl<GoodsOrderMapper, GoodsOr
             // 从缓存中查询优惠券信息得到满减金额
             Coupons coupons = couponsService.getCoupons(couponsId);
 
-            //TODO: 检验优惠券是否对有效门店使用
-
             if (!(coupons.getPreferentialType() == PreferentialType.REDUCTION)) {
                 throw new CommonException("异常优惠券，订单整体只能使用‘满减’类型的优惠券", INVALID_ARGUMENT);
             }
+
+            // 检验优惠券是否对有效门店使用
+            if (!coupons.getIsShopUniversal()) {
+                couponsShopRelationService.checkValid(couponsId, merchantId);
+            }
+
             goodsOrder.setCouponsMemberRelationId(couponsMemberRelationId);
             BigDecimal limitedAmount = coupons.getLimitedAmount();
 

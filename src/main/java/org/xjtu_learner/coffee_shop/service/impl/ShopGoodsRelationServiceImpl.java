@@ -178,7 +178,7 @@ public class ShopGoodsRelationServiceImpl extends ServiceImpl<ShopGoodsRelationM
         boolean success = lambdaUpdate()
                 .set(ShopGoodsRelation::getIsSoldOut, isSoldOut)
                 .eq(ShopGoodsRelation::getId, shopGoodsRelationId)
-                .eq(ShopGoodsRelation::getShopId, MerchantContext.get().getShopId())
+                .eq(ShopGoodsRelation::getShopId, MerchantContext.get().getId())
                 .eq(ShopGoodsRelation::getIsSoldOut, !isSoldOut)
                 .update();
 
@@ -208,7 +208,7 @@ public class ShopGoodsRelationServiceImpl extends ServiceImpl<ShopGoodsRelationM
     @Override
     public void checkExist(Integer shopGoodsRelationId) {
 
-        List<ShopGoodsRelation> shopGoodsList = getShopGoodsRelationList(MerchantContext.get().getShopId());
+        List<ShopGoodsRelation> shopGoodsList = getShopGoodsRelationList(MerchantContext.get().getId());
 
         List<Integer> existed = shopGoodsList.stream().map(ShopGoodsRelation::getId).toList();
 
@@ -221,7 +221,7 @@ public class ShopGoodsRelationServiceImpl extends ServiceImpl<ShopGoodsRelationM
     @Override
     public void checkExistBatch(List<Integer> shopGoodsRelationIdList) {
         // 检查restockList是否均为本门店所对应的商品
-        List<ShopGoodsRelation> shopGoodsList = getShopGoodsRelationList(MerchantContext.get().getShopId());
+        List<ShopGoodsRelation> shopGoodsList = getShopGoodsRelationList(MerchantContext.get().getId());
 
         List<Integer> existed = shopGoodsList.stream().map(ShopGoodsRelation::getId).toList();
 
@@ -239,7 +239,7 @@ public class ShopGoodsRelationServiceImpl extends ServiceImpl<ShopGoodsRelationM
     @Transactional
     public void addGoods(List<Integer> goodIdList) {
 
-        Integer shopId = MerchantContext.get().getShopId();
+        Integer shopId = MerchantContext.get().getId();
         List<Goods> goodsList = goodsService.getGoodsList(goodIdList);
 
         // 去除goodsList中门店已经存在的商品
@@ -271,7 +271,7 @@ public class ShopGoodsRelationServiceImpl extends ServiceImpl<ShopGoodsRelationM
     @Override
     public void deleteCache() {
 
-        Integer shopId = MerchantContext.get().getShopId();
+        Integer shopId = MerchantContext.get().getId();
         stringRedisTemplate.delete(CACHE_SHOP_GOODS_RELATION_PREFIX + shopId);
     }
 

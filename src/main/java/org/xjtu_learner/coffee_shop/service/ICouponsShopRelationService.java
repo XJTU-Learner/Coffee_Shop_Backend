@@ -21,4 +21,6 @@ public interface ICouponsShopRelationService extends IService<CouponsShopRelatio
     void createRelations(Integer couponsId, List<Integer> plus);
 
     void deleteRelation(Integer couponsId, List<Integer> subtract);
+
+    void checkValid(Integer couponsId, Integer shopId);
 }
